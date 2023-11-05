@@ -11,5 +11,12 @@ scaffolding
 				- mongo?
 				- postgres?
 				- sqlite?
+	- build inventory files from db
+		- segregate based on os
+			- unknown
+			- rhel 7x
+			- rhel 8x
+		- using world file for segmentation
+		- commit in git
 	- display facts on webpage
 		- flask?
