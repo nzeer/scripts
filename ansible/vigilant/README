@@ -1,6 +1,6 @@
 # cron runs python script responsible every 15m? hourly? daily?
 
-[bash?] Using jr's ip scans as base
+[bash?] Using ip scans as base
 scaffolding
 	- [python] format ip scans into inventory (yaml)
 	- [python][ansible] run gather facts against the entire inventory
