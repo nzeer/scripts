@@ -1,6 +1,7 @@
 # Import the os and subprocess modules
 import os
 import subprocess
+import sys
 
 
 # Define a function to run git pull in a given directory
@@ -45,7 +46,14 @@ def loop_directories(path):
 # Define a main function
 def main():
     # Get the path from the user input or use the current working directory as the default
-    path = input("Enter the path: ") or os.getcwd()
+    # path = input("Enter the path: ") or os.getcwd()
+    # Check if the user provided a directory as an argument
+    if len(sys.argv) > 1:
+        # Get the directory from the first argument
+        path = sys.argv[1]
+    else:
+        # Use the current working directory as the default
+        path = os.getcwd()
     # Print the path
     print(f"Looping through all top level directories in {path}")
     # Call the loop_directories function
