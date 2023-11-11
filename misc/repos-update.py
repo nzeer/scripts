@@ -24,6 +24,7 @@ def loop_directories(path):
     try:  # Loop through the files and directories in the path
         if not os.path.exists(path):
             raise Exception("Path does not exist")
+        os.chdir(path)
         for entry in os.scandir(path):
             # Check if the entry is a directory
             if entry.is_dir():
