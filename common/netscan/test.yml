@@ -1,0 +1,5 @@
+# a sudo nmap scan to fully use nmap scan power.
+plugin: community.general.nmap
+sudo: true
+strict: false
+address: 172.16.0.0/24

@@ -1,0 +1,2 @@
+plugin: nmap_plugin
+address: 172.16.255.0/24
