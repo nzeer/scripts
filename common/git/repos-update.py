@@ -22,9 +22,6 @@ def git_pull(directory):
 # Define a function to loop through all top level directories in a given path
 def loop_directories(path):
     try:  # Loop through the files and directories in the path
-        if not os.path.exists(path):
-            raise Exception("Path does not exist")
-        os.chdir(path)
         for entry in os.scandir(path):
             # Check if the entry is a directory
             if entry.is_dir():
@@ -40,7 +37,8 @@ def loop_directories(path):
 
     except Exception as e:
         # Print the exception
-        print("Oops: ", e)
+        # print("ASSERT: ", e)
+        raise e
         pass
 
 
@@ -49,16 +47,25 @@ def main():
     # Get the path from the user input or use the current working directory as the default
     # path = input("Enter the path: ") or os.getcwd()
     # Check if the user provided a directory as an argument
-    if len(sys.argv) > 1:
-        # Get the directory from the first argument
-        path = sys.argv[1]
-    else:
-        # Use the current working directory as the default
-        path = os.getcwd()
-    # Print the path
-    print(f"Looping through all top level directories in {path}")
+    try:
+        if len(sys.argv) > 1:
+            # Get the directory from the first argument
+            path = sys.argv[1]
+        else:
+            # Use the current working directory as the default
+            path = os.getcwd()
+
+        print(f"Looping through all top level directories in {path}")
+        # Call the loop_directories function
+        loop_directories(path)
+
+    except Exception as e:  # Print the path
+        print("Oops", e)
+        exit
+
+    # print(f"Looping through all top level directories in {path}")
     # Call the loop_directories function
-    loop_directories(path)
+    # loop_directories(path)
 
 
 # Check if the script is run as the main module
