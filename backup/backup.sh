@@ -15,7 +15,7 @@ dest="/home/backup"
 datetime=$(date +%F)
 #time=$(date +%H%M)
 #file=$(file)
-archive_file="$datetime-home.tgz"
+archive_file="$datetime-home.tar.gz"
 archive_path="$dest/$archive_file"
 
 echo $archive_file
