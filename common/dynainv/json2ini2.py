@@ -30,23 +30,11 @@ def write_ini(data, file):
             myfindings = list(data.items())[0][1]["hostvars"]
             for k in myfindings:
                 curdict = myfindings[k]
-                devices.append(curdict)
+                if curdict["ip"] != curdict["name"]:
+                    devices.append(curdict)
+                    print(curdict)
                 iplist.append(curdict["ip"])
             continue
-        # Check if the value is a dictionary
-        elif isinstance(value, dict):
-            # Check if the value has a hosts key
-            if "hosts" in value:
-                # Join the hosts with spaces
-                hosts = " ".join(value["hosts"])
-                # Add the key and hosts to the ConfigParser object
-                config[key] = {"hosts": hosts}
-        # Check if the value is a list
-        elif isinstance(value, list):
-            # Join the list items with spaces
-            items = " ".join(value)
-            # Add the key and items to the ConfigParser object
-            config[key] = {"children": items}
 
     with open(file, "w") as f:
         # Write the INI data to the file
