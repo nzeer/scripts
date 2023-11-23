@@ -1,0 +1,286 @@
+172.16.0.93 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.93\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.0.93 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.0.112 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.112\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.0.112 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.10.62 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.62\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.62 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.10.52 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.52\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.52 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.10.19 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.19\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.19 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.10.58 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.58\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.58 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.10.180 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.180\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.180 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.10.188 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.188\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.188 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.10.1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.1\". Make sure this host can be reached over ssh: nzeer@172.16.10.1: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.11.1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.11.1\". Make sure this host can be reached over ssh: nzeer@172.16.11.1: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.20.1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.20.1\". Make sure this host can be reached over ssh: nzeer@172.16.20.1: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.66 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.66\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.0.66 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.30.1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.30.1\". Make sure this host can be reached over ssh: nzeer@172.16.30.1: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.50.1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.50.1\". Make sure this host can be reached over ssh: nzeer@172.16.50.1: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.10.139 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.139\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.139 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.10.208 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.208\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.208 port 22: Connection refused\r\n",
+    "unreachable": true
+}
+172.16.0.41 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.41\". Make sure this host can be reached over ssh: nzeer@172.16.0.41: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.42 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.42\". Make sure this host can be reached over ssh: nzeer@172.16.0.42: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.153 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.153\". Make sure this host can be reached over ssh: nzeer@172.16.0.153: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.152 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.152\". Make sure this host can be reached over ssh: nzeer@172.16.0.152: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.250 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.250\". Make sure this host can be reached over ssh: nzeer@172.16.0.250: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.154 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.154\". Make sure this host can be reached over ssh: nzeer@172.16.0.154: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.30.31 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.30.31\". Make sure this host can be reached over ssh: nzeer@172.16.30.31: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.30.70 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Archlinux",
+        "ansible_distribution_file_path": "/etc/arch-release",
+        "ansible_distribution_file_variety": "Archlinux",
+        "ansible_distribution_major_version": "NA",
+        "ansible_distribution_release": "NA",
+        "ansible_distribution_version": "NA",
+        "discovered_interpreter_python": "/usr/bin/python3.11"
+    },
+    "changed": false
+}
+172.16.0.11 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.11\". Make sure this host can be reached over ssh: nzeer@172.16.0.11: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.70 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.70\". Make sure this host can be reached over ssh: nzeer@172.16.0.70: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.30.30 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Archlinux",
+        "ansible_distribution_file_path": "/etc/arch-release",
+        "ansible_distribution_file_variety": "Archlinux",
+        "ansible_distribution_major_version": "NA",
+        "ansible_distribution_release": "NA",
+        "ansible_distribution_version": "NA",
+        "discovered_interpreter_python": "/usr/bin/python3.11"
+    },
+    "changed": false
+}
+172.16.0.12 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.12\". Make sure this host can be reached over ssh: nzeer@172.16.0.12: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.1\". Make sure this host can be reached over ssh: nzeer@172.16.0.1: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.0.10 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Debian",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "11",
+        "ansible_distribution_minor_version": "8",
+        "ansible_distribution_release": "bullseye",
+        "ansible_distribution_version": "11.8",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.16.0.50 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.50\". Make sure this host can be reached over ssh: nzeer@172.16.0.50: Permission denied (publickey,password).\r\n",
+    "unreachable": true
+}
+172.16.30.72 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Debian",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "12",
+        "ansible_distribution_minor_version": "2",
+        "ansible_distribution_release": "bookworm",
+        "ansible_distribution_version": "12.2",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.16.30.73 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Debian",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "12",
+        "ansible_distribution_minor_version": "2",
+        "ansible_distribution_release": "bookworm",
+        "ansible_distribution_version": "12.2",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.16.0.5 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Debian",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "11",
+        "ansible_distribution_minor_version": "8",
+        "ansible_distribution_release": "bullseye",
+        "ansible_distribution_version": "11",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.16.30.71 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Debian",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "12",
+        "ansible_distribution_minor_version": "2",
+        "ansible_distribution_release": "bookworm",
+        "ansible_distribution_version": "12.2",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.16.0.4 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Debian",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "11",
+        "ansible_distribution_minor_version": "8",
+        "ansible_distribution_release": "bullseye",
+        "ansible_distribution_version": "11",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.16.10.154 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Debian",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "12",
+        "ansible_distribution_minor_version": "2",
+        "ansible_distribution_release": "bookworm",
+        "ansible_distribution_version": "12.2",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.16.30.74 | SUCCESS => {
+    "ansible_facts": {
+        "ansible_distribution": "Debian",
+        "ansible_distribution_file_parsed": true,
+        "ansible_distribution_file_path": "/etc/os-release",
+        "ansible_distribution_file_variety": "Debian",
+        "ansible_distribution_major_version": "12",
+        "ansible_distribution_minor_version": "2",
+        "ansible_distribution_release": "bookworm",
+        "ansible_distribution_version": "12.2",
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false
+}
+172.16.10.103 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.10.103\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.10.103 port 22: Connection timed out\r\n",
+    "unreachable": true
+}
+172.16.0.240 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Data could not be sent to remote host \"172.16.0.240\". Make sure this host can be reached over ssh: ssh: connect to host 172.16.0.240 port 22: Connection timed out\r\n",
+    "unreachable": true
+}
