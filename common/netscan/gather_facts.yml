@@ -1,35 +1,35 @@
 ---
-- name: Gather facts from network CIDR
-  hosts: localhost
-  vars:
-    # Define the output file name
-  output_file: network_facts.yml
-  tasks:
-    # Use the nmap module to scan the network and get the list of hosts
-    #- name: Scan network with nmap
-      plugin: community.general.nmap
-      #sudo: true
-      strict: false
-      address: "{{ network_cidr }}"
-      #target: "{{ network_cidr }}"
-      register: nmap_result
+  - name: Gather facts from network CIDR
+    hosts: localhost
+    vars:
+      # Define the output file name
+    output_file: network_facts.yml
+    tasks:
+      # Use the nmap module to scan the network and get the list of hosts
+      #- name: Scan network with nmap
+        plugin: community.general.nmap
+        #sudo: true
+        strict: false
+        address: "{{ network_cidr }}"
+        #target: "{{ network_cidr }}"
+        register: nmap_result
 
     # Use the add_host module to add the hosts to the inventory
 #- name: Add hosts to inventory
-      add_host:
-        name: "{{ item.address }}"
-        groups: scanned_hosts
-      loop: "{{ nmap_result.hosts }}"
+        add_host:
+          name: "{{ item.address }}"
+          groups: scanned_hosts
+        loop: "{{ nmap_result.hosts }}"
 
     # Use the setup module to gather facts from the hosts
 #- name: Gather facts from hosts
-      setup:
-      delegate_to: "{{ item }}"
-      register: setup_result
-      loop: "{{ groups['scanned_hosts'] }}"
+        setup:
+        delegate_to: "{{ item }}"
+        register: setup_result
+        loop: "{{ groups['scanned_hosts'] }}"
 
     # Use the copy module to write the facts to a YAML file
 #- name: Write facts to YAML file
-      copy:
-        content: "{{ setup_result.results | to_nice_yaml }}"
-        dest: "{{ output_file }}"
+        copy:
+          content: "{{ setup_result.results | to_nice_yaml }}"
+          dest: "{{ output_file }}"
