@@ -1,0 +1,9 @@
+---
+plugin: nmap
+address: 172.16.0.0/16
+strict: False
+ipv4: yes
+ports: no
+groups:
+  appliance: "'genera' in hostname"
+  regular: "'host' in hostname"
