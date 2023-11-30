@@ -18,12 +18,3 @@
       rescue:
         - name: debug print unreachable host(s)
           ansible.builtin.debug: msg="cannot connect to {{ inventory_hostname }}"
-
-- name: Run Evaluate-STIG
-  ignore_unreachable: yes
-  hosts: reachable
-  become: true
-# vars_prompt:
-#   - name: outputpath
-#     prompt: Enter local path to save Evaluate-STIG results
-#     private: no

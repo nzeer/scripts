@@ -1,0 +1,5 @@
+- import_playbook: ./reachable.yml
+- hosts:
+    - reachable
+  tasks:
+    - action: ping
