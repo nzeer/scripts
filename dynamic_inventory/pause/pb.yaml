@@ -1,0 +1,9 @@
+---
+- name: Refresh Host Inventory at Runtime and Add a Pause while Executing Playbook
+  hosts: all
+  connection: local
+  gather_facts: True
+  tasks:
+    - meta: refresh_inventory
+    - pause:
+        minutes: 1
