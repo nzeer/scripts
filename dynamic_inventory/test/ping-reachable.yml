@@ -3,3 +3,10 @@
     - reachable
   tasks:
     - action: ping
+  tasks:
+- name: Gather facts
+  cisco.ios.ios_facts:
+    gather_subset: min
+  register: results
+
+ - copy: content="{{ results | to_nice_json }}" dest="~/playbooks/output_{{inventory_hostname}}.json"

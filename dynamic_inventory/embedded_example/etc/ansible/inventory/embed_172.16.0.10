@@ -1,0 +1,8 @@
+# ini-formatted inventory for devices under host 172.16.0.10
+[embed_172.16.0.10]
+172.16.0.10
+172.16.0.11
+172.16.0.12
+# Connection vars that apply to everyone in this group
+[embed_172.16.0.10:vars]
+ansible_user=nzeer

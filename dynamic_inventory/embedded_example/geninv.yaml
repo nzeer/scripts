@@ -1,0 +1,38 @@
+---
+- hosts: all,!embed*
+  vars:
+    # swap in the users as appropriate for your org
+    my_remote_user: nzeer # for Ansible > remote servers
+    my_device_user: nzeer # for remote servers > embedded devices
+    inventory_path: ./etc/ansible/inventory
+
+  tasks:
+    # This grep should be whatever pattern gets the embedded devices
+    - name: Fetch embedded devices from /etc/hosts on each remote server
+      shell:
+        cmd: egrep '172.16.' /etc/hosts | awk '{print $1}'
+      register: embed_grep
+      failed_when: false
+
+    - name: Ensure inventory folder exists on Ansible controller
+      delegate_to: localhost
+      run_once: yes
+      file:
+        path: "{{ inventory_path }}"
+        state: directory
+
+    # This is normally a template task with a .j2 template,
+    # but using copy here for illustration purposes.
+    # We skip making the file if no embeds were found
+    - name: Create inventory fragments on Ansible controller
+      delegate_to: localhost
+      copy:
+        content: |
+          # ini-formatted inventory for devices under host {{inventory_hostname}}
+          [embed_{{ inventory_hostname }}]
+          {{ embed_grep.stdout | trim }}
+          # Connection vars that apply to everyone in this group
+          [embed_{{ inventory_hostname }}:vars]
+          ansible_user={{ my_device_user }}
+        dest: "{{ inventory_path }}/embed_{{ inventory_hostname }}"
+      when: embed_grep.stdout_lines|length > 0
