@@ -1,0 +1,12 @@
+---
+plugin: nmap
+address: 172.16.0-60.0/24
+#address: 172.16.30.0/24
+strict: false
+ipv6: false
+ports: true
+port: 22
+use_extra_vars: true
+groups:
+  appliance: "'genera' in hostname"
+  regular: "'host' in hostname"

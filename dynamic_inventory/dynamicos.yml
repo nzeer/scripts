@@ -1,0 +1,8 @@
+#- hosts: dynamicOS
+- hosts: all
+  vars_files:
+    - "{{ ansible_os_family }}.yml"
+  tasks:
+    - package:
+        name: "{{ packageName }}"
+        state: present

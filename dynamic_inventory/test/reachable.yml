@@ -1,0 +1,29 @@
+---
+- name: Identify reachable hosts
+  hosts: all
+  connection: local
+  gather_facts: false
+  strategy: linear
+
+  tasks:
+    - block:
+        - name: determine hosts that are reachable
+          ansible.builtin.wait_for_connection:
+            timeout: 5
+          vars:
+            ansible_connection: ssh
+        - name: add devices with connectivity to the "reachable" group
+          ansible.builtin.group_by:
+            key: reachable
+      rescue:
+        - name: debug print unreachable host(s)
+          ansible.builtin.debug: msg="cannot connect to {{ inventory_hostname }}"
+
+- name: Run Evaluate-STIG
+  ignore_unreachable: yes
+  hosts: reachable
+  become: true
+# vars_prompt:
+#   - name: outputpath
+#     prompt: Enter local path to save Evaluate-STIG results
+#     private: no

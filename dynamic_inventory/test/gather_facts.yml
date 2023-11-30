@@ -1,0 +1,29 @@
+- name: Gather facts for devices
+  #  pre_tasks:
+  # for windows
+  # - win_ping:
+  #     ignore_errors: true
+  # for linux
+  #   - ping:
+  ignore_errors: true
+  ignore_unreachable: true
+  hosts: all
+  gather_facts: yes
+  become: false
+  tasks:
+    - name: Save Distro info
+      set_fact:
+        os_distro: "{{ ansible_distribution }}"
+        os_version: "{{ ansible_distribution_version }}"
+        os_major: "{{ ansible_distribution_major_version }}"
+        cacheable: yes
+      #register: result
+      #when: result|failed
+
+    - name: System details
+      debug: msg="{{ item }}"
+      with_items:
+        #- "{{ os_distro }}"
+        - "{{ os_distro | to_json(indent=4, sort_keys=True) }}"
+        - "{{ os_version }}"
+        - "{{ os_major }}"
