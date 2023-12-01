@@ -1,1 +1,1 @@
-('"andromeda.homenet.lan"', '[\n    "172.16.30.70"\n]', ['"Archlinux"', '"NA"'])
+('andromeda.homenet.lan', ['172.16.30.70'], ['Archlinux', 'NA'])

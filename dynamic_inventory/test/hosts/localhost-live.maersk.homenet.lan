@@ -1,1 +1,1 @@
-('"localhost-live.maersk.homenet.lan"', '[\n    "172.16.20.156",\n    "172.16.30.161"\n]', ['"Fedora"', '"39"'])
+('localhost-live.maersk.homenet.lan', ['172.16.20.156', '172.16.30.161'], ['Fedora', '39'])

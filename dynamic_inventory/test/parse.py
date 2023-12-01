@@ -23,18 +23,19 @@ def load_host(file):
 
 
 def load_hosts(directory):
-    hosts_loaded = False
+    loaded_hosts = []
     try:
         path = p.Path(directory)
         if not path.exists():
             raise RuntimeError("directory does not exist.")
         else:
             for h in [f for f in path.iterdir() if f.is_file()]:
-                load_host(h)
-            hosts_loaded = True
+                print("loading ", h)
+                loaded_hosts.append(load_host(h))
+                print("successfully loaded ", h)
     except OSError as e:
         pass
-    return hosts_loaded
+    return loaded_hosts
 
 
 def write_inventory(hosts={}, file=""):
@@ -56,7 +57,7 @@ def write_inventory(hosts={}, file=""):
             for ip in iplist:
                 f.write("%s\n" % ip)  #   - os major
     except OSError as e:
-        print("there was a problem with creating file or path: ", e.strerror)
+        print("there was a problem with creating file or path: ", file)
 
 
 # Define a main function
@@ -72,9 +73,10 @@ def main():
     inventory_directory = "./inventories"
 
     # load all host info from text files (tuples) in a given directory
-    load_hosts(hosts_info_directory)
+    hosts_loaded = load_hosts(hosts_info_directory)
+    print(hosts_loaded)
+    # write_inventory(inventory_directory)
 
-    write_inventory(inventory_directory)
     # Print a success message
     # print(f"Successfully converted {json_file} to {ini_file}")
 

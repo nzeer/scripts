@@ -20,6 +20,6 @@
 
     - name: save all facts to host specific file
       copy:
-        content: "{{ ansible_fqdn | to_nice_json, ansible_all_ipv4_addresses | to_nice_json, [os_distro | to_nice_json, os_version | to_nice_json] }}"
+        content: "{{ ansible_fqdn, ansible_all_ipv4_addresses, [os_distro, os_version] }}"
         dest: "{{ playbook_dir }}/hosts/{{ ansible_fqdn }}"
       delegate_to: localhost
