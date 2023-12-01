@@ -1,0 +1,8 @@
+---
+- hosts: 172.16.30.161
+  become: true
+  tasks:
+    - name: Print all available facts
+
+      ansible.builtin.debug:
+        var: ansible_facts

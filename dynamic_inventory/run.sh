@@ -1,6 +1,6 @@
 # scan network
 cd /home/nzeer/repos/semaphore-repo/gather_facts
-ansible-inventory -i nmap.yaml --list >> hosts.json
+ansible-inventory -i nmap.yaml --export --output=hosts.json --list
 
 # copy hosts.json to dynamic inventory
 cp hosts.json /home/nzeer/repos/scripts/dynamic_inventory

@@ -1,13 +1,4 @@
-- name: Gather facts for devices
-  #  pre_tasks:
-  # for windows
-  # - win_ping:
-  #     ignore_errors: true
-  # for linux
-  #   - ping:
-  ignore_errors: true
-  ignore_unreachable: true
-  hosts: all
+- hosts: all
   gather_facts: yes
   become: false
   tasks:
@@ -16,14 +7,19 @@
         os_distro: "{{ ansible_distribution }}"
         os_version: "{{ ansible_distribution_version }}"
         os_major: "{{ ansible_distribution_major_version }}"
+        fqdn: "{{ ansible_fqdn }}"
         cacheable: yes
-      #register: result
-      #when: result|failed
 
     - name: System details
       debug: msg="{{ item }}"
       with_items:
-        #- "{{ os_distro }}"
-        - "{{ os_distro | to_json(indent=4, sort_keys=True) }}"
+        - "{{ os_distro }}"
         - "{{ os_version }}"
         - "{{ os_major }}"
+        - "{{ ansible_all_ipv4_addresses }}"
+
+    - name: save all facts to host specific file
+      copy:
+        content: "{{ ansible_fqdn | to_nice_json, ansible_all_ipv4_addresses | to_nice_json, [os_distro | to_nice_json, os_version | to_nice_json] }}"
+        dest: "{{ playbook_dir }}/hosts/{{ ansible_fqdn }}"
+      delegate_to: localhost
