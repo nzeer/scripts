@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List
 
 """ =========================================================
 Dataclass for holding ansible inventory info:
@@ -12,7 +13,7 @@ Dataclass for holding ansible inventory info:
 
 
 @dataclass
-class InventoryInfo:
+class InventoryEntry:
     """Class for tracking host info"""
 
     ip_nipr_dict: dict
@@ -21,6 +22,7 @@ class InventoryInfo:
     nipr_ip_list: list
     dev_ip_list: list
     stand_alone_ip_list: list
+    hostname: str
 
     def nipr(self) -> dict:
         return self.ip_nipr_dict
@@ -39,3 +41,11 @@ class InventoryInfo:
 
     def stand_alone_ips(self) -> list:
         return self.stand_alone_ip_list
+
+    def host_name(self) -> str:
+        return self.hostname
+
+
+@dataclass
+class Inventory:
+    items: List[InventoryEntry]

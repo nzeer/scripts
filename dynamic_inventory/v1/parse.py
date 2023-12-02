@@ -1,7 +1,7 @@
 import pathlib as p
 
 from HostInfo import HostInfo
-from InventoryInfo import InventoryInfo
+from InventoryInfo import Inventory, InventoryEntry
 
 """ =========================================================
 parse files in ./hosts and build inventories based off:
@@ -81,14 +81,16 @@ TODO: Server groupings (custom config options)
 
 
 def write_inventory(hosts=[], inv_dir=""):
-    inventory_info = InventoryInfo(
+    inventory_entry = InventoryEntry(
         ip_nipr_dict={},
         ip_stand_alone_dict={},
         ip_dev_dict={},
         nipr_ip_list=[],
         dev_ip_list=[],
         stand_alone_ip_list=[],
+        hostname="",
     )
+    inventory = Inventory(items=[])
     path = p.Path(inv_dir)
     dir_exists = path.exists()
     try:
@@ -98,7 +100,9 @@ def write_inventory(hosts=[], inv_dir=""):
             host = HostInfo(name="", ip_list=[], os_info_list=[])
             # content: "{{ ansible_fqdn, ansible_all_ipv4_addresses, [os_distro, os_version] }}"
             # ('localhost-live.maersk.homenet.lan', ['172.16.20.156', '172.16.30.161'], ['Fedora', '39'])
-            print(h)
+            host = h
+            print(host)
+            host = None
 
         # with open(file, "w") as f:
         # Write the INI data to the file
