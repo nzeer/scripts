@@ -2,10 +2,11 @@ import pathlib as p
 from dataclasses import dataclass
 
 """ =========================================================
-parse files in ./hosts and build inventories based off:
+Dataclass for holding ansible setup facts:
   - ip (configurable)
   - os family
   - major release version
+  - fqdn
 ============================================================="""
 
 
