@@ -69,16 +69,22 @@ def load_hosts(directory):
     return loaded_hosts
 
 
+# Write out inventory files broken out by
+#   - Network (subnet)
+#   - Os family/release major version
+# TODO: create a world file
+# TODO: variables per inventory
+# TODO: Server groupings (custom config options)
 def write_inventory(hosts=[], inv_dir=""):
     path = p.Path(inv_dir)
     dir_exists = path.exists()
     host = HostInfo(name="", ip_list=[], os_info_list=[])
-    # print("hosts: ", hosts)
     try:
         if not dir_exists:
             path.mkdir()
         else:
             for h in hosts:
+                host = HostInfo(name="", ip_list=[], os_info_list=[])
                 # content: "{{ ansible_fqdn, ansible_all_ipv4_addresses, [os_distro, os_version] }}"
                 # ('localhost-live.maersk.homenet.lan', ['172.16.20.156', '172.16.30.161'], ['Fedora', '39'])
                 host = h
