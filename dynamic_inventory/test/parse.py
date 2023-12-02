@@ -1,9 +1,12 @@
 import pathlib as p
 from dataclasses import dataclass
 
-# parse files in ./hosts and build inventories based off:
-#   - ip (configurable)
-#   - os family
+""" =========================================================
+parse files in ./hosts and build inventories based off:
+  - ip (configurable)
+  - os family
+  - major release version 
+============================================================="""
 
 
 @dataclass
