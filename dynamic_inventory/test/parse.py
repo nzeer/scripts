@@ -27,10 +27,9 @@ class HostInfo:
         return self.os_info_list[0]
 
 
-# Define a function to load host data tuple from a file
+# load host data into HostInfo instance
+# Return Type: HostInfo
 def load_host(file):
-    host_info_tuple = tuple
-    host_info = ""
     current_host = HostInfo("", [], [])
     try:
         path = p.Path(file)
@@ -38,7 +37,6 @@ def load_host(file):
             raise RuntimeError("file does not exist.")
         else:
             # Open the file and read the tuple
-
             # current_host.name, current_host.ip_list, current_host.os_info_list =
             res = eval(
                 open(
@@ -46,12 +44,13 @@ def load_host(file):
                 ).readline()
             )
             return HostInfo(res[0], res[1], res[2])
-        # print(host_info_tuple)
     except OSError as e:
         print(e.strerror)
     return current_host
 
 
+# Load all hosts in a given directory
+# ReturnType: list of HostInfo objects
 def load_hosts(directory):
     loaded_hosts = []
     host = HostInfo("", [], [])
@@ -61,12 +60,10 @@ def load_hosts(directory):
             raise RuntimeError("directory does not exist.")
         else:
             for h in [f for f in path.iterdir() if f.is_file()]:
-                # print("loading ", h)
-                # print("current host: ", h)
+                host = HostInfo("", [], [])
                 host = load_host(h)
-                # print(host)  # print(host)
                 loaded_hosts.append(host)
-                # print("successfully loaded ", h)
+                host = None
     except OSError as e:
         pass
     return loaded_hosts
