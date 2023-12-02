@@ -27,8 +27,13 @@ class HostInfo:
         return self.os_info_list[0]
 
 
-# load host data into HostInfo instance
-# Return Type: HostInfo
+""" =========================================================
+load host data into HostInfo instance
+
+Return Type: HostInfo
+============================================================="""
+
+
 def load_host(file):
     current_host = HostInfo("", [], [])
     try:
@@ -49,8 +54,13 @@ def load_host(file):
     return current_host
 
 
-# Load all hosts in a given directory
-# ReturnType: list of HostInfo objects
+""" =========================================================
+Load all hosts in a given directory
+
+ReturnType: list of HostInfo objects
+============================================================="""
+
+
 def load_hosts(directory):
     loaded_hosts = []
     host = HostInfo("", [], [])
@@ -69,12 +79,16 @@ def load_hosts(directory):
     return loaded_hosts
 
 
-# Write out inventory files broken out by
-#   - Network (subnet)
-#   - Os family/release major version
-# TODO: create a world file
-# TODO: variables per inventory
-# TODO: Server groupings (custom config options)
+""" =========================================================
+Write out inventory files broken out by
+  - Network (subnet)
+  - Os family/release major version
+TODO: create a world file
+TODO: variables per inventory
+TODO: Server groupings (custom config options)
+============================================================="""
+
+
 def write_inventory(hosts=[], inv_dir=""):
     path = p.Path(inv_dir)
     dir_exists = path.exists()
@@ -106,15 +120,12 @@ def write_inventory(hosts=[], inv_dir=""):
         print("there was a problem with creating file or path: ", file)
 
 
-# Define a main function
+""" =========================================================
+Define an entry point
+============================================================="""
+
+
 def main():
-    # Get the JSON file name from the user input or use the default
-    # json_file = input("Enter the JSON file name: ") or "./hosts.json"
-    # Get the INI file name from the user input or use the default
-    # ini_file = input("Enter the INI file name: ") or "./hosts.ini"
-    # Call the load_json function and get the JSON data
-    # json_data = load_json(json_file)
-    # Call the write_ini function and write the INI data to the file
     hosts_info_directory = "./hosts"
     inventory_directory = "./inventories"
 
@@ -122,9 +133,6 @@ def main():
     hosts_loaded = load_hosts(hosts_info_directory)
     print(hosts_loaded)
     # write_inventory(hosts_loaded, inventory_directory)
-
-    # Print a success message
-    # print(f"Successfully converted {json_file} to {ini_file}")
 
 
 # Check if the script is run as the main module
