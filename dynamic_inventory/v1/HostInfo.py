@@ -24,10 +24,10 @@ class HostInfo:
     def ips(self) -> list:
         return self.ip_list
 
-    def os_version(self) -> str:
+    def version(self) -> str:
         return self.os_info_list[1]
 
-    def os_family(self) -> str:
+    def distro(self) -> str:
         return self.os_info_list[0]
 
 

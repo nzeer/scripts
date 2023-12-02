@@ -1,3 +1,4 @@
+import os
 import pathlib as p
 
 from HostInfo import HostInfo
@@ -77,20 +78,31 @@ TODO: Server groupings (custom config options)
     ip_dev_dict: dict
     nipr_ip_list: list
     dev_ip_list: list
-    stand_alone_ip_list: list"""
+    stand_alone_ip_list: list
+    unknown_subnet_ip_list: list
+    hostname: str
+    os_distro: str
+    os_release: str"""
 
 
 def write_inventory(hosts=[], inv_dir=""):
-    inventory_entry = InventoryEntry(
-        ip_nipr_dict={},
-        ip_stand_alone_dict={},
-        ip_dev_dict={},
+    """inventory_entry = InventoryEntry(
         nipr_ip_list=[],
         dev_ip_list=[],
         stand_alone_ip_list=[],
+        unknown_subnet_ip_list=[],
         hostname="",
+        os_distro="",
+        os_release="",
+    )"""
+    inventory = Inventory(
+        items=[],
+        list_nipr=[],
+        list_dev=[],
+        list_stand_alone=[],
+        list_unknown=[],
+        list_entries=[],
     )
-    inventory = Inventory(items=[])
     path = p.Path(inv_dir)
     dir_exists = path.exists()
     try:
@@ -98,12 +110,46 @@ def write_inventory(hosts=[], inv_dir=""):
             path.mkdir()
         for h in hosts:
             host = HostInfo(name="", ip_list=[], os_info_list=[])
+            inventory_entry = InventoryEntry(
+                nipr_ip_list=[],
+                dev_ip_list=[],
+                stand_alone_ip_list=[],
+                unknown_subnet_ip_list=[],
+                hostname="",
+                os_distro="",
+                os_release="",
+                ip_list=[],
+            )
             # content: "{{ ansible_fqdn, ansible_all_ipv4_addresses, [os_distro, os_version] }}"
             # ('localhost-live.maersk.homenet.lan', ['172.16.20.156', '172.16.30.161'], ['Fedora', '39'])
             host = h
-            print(host)
+            inventory_entry.add_host(h)
+            inventory.items.append(h)
+            # inventory.items.append(inventory_entry)
+            inventory.add_ip(h.ip_list)
             host = None
+            inventory_entry = None
+        print(inventory)
+        for inv in inventory.items:
+            host = HostInfo(name="", ip_list=[], os_info_list=[])
+            host = inv
+            os_path = os.path.join(inv_dir, host.distro())
+            path = p.Path(os_path)
+            if not os.path.exists(os_path):
+                path = p.Path(os_path)
+                path.mkdir()
+            release_path = os.path.join(os_path, host.version())
+            if not os.path.exists(release_path):
+                path = p.Path(release_path)
+                path.mkdir()
+                inventory_path = os.path.join(release_path, "inventory")
+                path = p.Path(inventory_path)
+                path.touch()
+            print(host.ip_list)
 
+        for entry in inventory.list_entries:
+            # os_dir = p.Path(inv_dir+"/"+ entry.)
+            pass
         # with open(file, "w") as f:
         # Write the INI data to the file
         #    for h in hosts:
