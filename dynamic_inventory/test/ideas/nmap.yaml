@@ -1,9 +1,11 @@
 ---
 plugin: nmap
-address: 172.16.0.0/16
-strict: false
-ipv6: false
-use_extra_vars: true
+address: 172.16.30.0/24
+strict: no
+ipv4: yes
+ipv6: no
+ports: yes
+port: 22
 groups:
   appliance: "'genera' in hostname"
   regular: "'host' in hostname"

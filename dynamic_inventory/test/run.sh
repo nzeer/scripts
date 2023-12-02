@@ -1,4 +1,5 @@
 # scan network
+mkdir hosts
 ansible-inventory -i nmap.yaml --export --output=hosts.json --list
 
 # convert hosts.json to inventory file

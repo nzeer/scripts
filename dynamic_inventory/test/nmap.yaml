@@ -1,11 +1,10 @@
 ---
 plugin: nmap
-address: 172.16.30.0/24
-strict: no
+address: 172.16.20-30.0/24
+strict: false
 ipv4: yes
-ipv6: no
 ports: yes
-port: 22
+sudo: true
 groups:
-  appliance: "'genera' in hostname"
-  regular: "'host' in hostname"
+  without_hostname: "'172.16.30' in name"
+  with_ssh: "ports | selectattr('service', 'equalto', 'ssh')"
