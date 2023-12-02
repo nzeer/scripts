@@ -134,7 +134,8 @@ def main():
 
     # load all host info from text files (tuples) in a given directory
     hosts_loaded = load_hosts(hosts_info_directory)
-    print(hosts_loaded)
+    for h in hosts_loaded:
+        print(h)
     # write_inventory(hosts_loaded, inventory_directory)
 
 
