@@ -3,6 +3,7 @@ plugin: nmap
 address: 172.16.0-60.0/24
 strict: false
 ipv4: yes
+ipv6: no
 ports: yes
 sudo: true
 groups:

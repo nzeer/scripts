@@ -75,21 +75,14 @@ TODO: Server groupings (custom config options)
 def write_inventory(hosts=[], inv_dir=""):
     path = p.Path(inv_dir)
     dir_exists = path.exists()
-    host = HostInfo(name="", ip_list=[], os_info_list=[])
     try:
         if not dir_exists:
             path.mkdir()
-        else:
-            for h in hosts:
-                host = HostInfo(name="", ip_list=[], os_info_list=[])
-                # content: "{{ ansible_fqdn, ansible_all_ipv4_addresses, [os_distro, os_version] }}"
-                # ('localhost-live.maersk.homenet.lan', ['172.16.20.156', '172.16.30.161'], ['Fedora', '39'])
-                host = h
-                print(host.name)
-                print(host.ip_list)
-                print(host.os_info_list)
-                print(host.os_family)
-                print(host.os_version)
+        for h in hosts:
+            host = HostInfo(name="", ip_list=[], os_info_list=[])
+            # content: "{{ ansible_fqdn, ansible_all_ipv4_addresses, [os_distro, os_version] }}"
+            # ('localhost-live.maersk.homenet.lan', ['172.16.20.156', '172.16.30.161'], ['Fedora', '39'])
+            print(h)
 
         # with open(file, "w") as f:
         # Write the INI data to the file
@@ -114,9 +107,9 @@ def main():
 
     # load all host info from text files (tuples) in a given directory
     hosts_loaded = load_hosts(hosts_info_directory)
-    for h in hosts_loaded:
-        print(h)
-    # write_inventory(hosts_loaded, inventory_directory)
+    # for h in hosts_loaded:
+    #    print(h)
+    write_inventory(hosts_loaded, inventory_directory)
 
 
 # Check if the script is run as the main module

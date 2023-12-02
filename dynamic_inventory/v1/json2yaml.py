@@ -16,7 +16,7 @@ def load_json(file):
 
 
 # Define a function to write INI data to a file
-def write_ini(data, file):
+def write_inventory(data, file):
     myfindings = {}
     devices = []
     iplist = []
@@ -55,7 +55,7 @@ def main():
     # Call the load_json function and get the JSON data
     json_data = load_json(json_file)
     # Call the write_ini function and write the INI data to the file
-    write_ini(json_data, inventory_file)
+    write_inventory(json_data, inventory_file)
     # Print a success message
     # print(f"Successfully converted {json_file} to {ini_file}")
 
