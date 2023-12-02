@@ -1,3 +1,4 @@
+*.pyc
 hosts
 inventory
 inventories
