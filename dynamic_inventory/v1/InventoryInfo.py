@@ -2,10 +2,12 @@ from dataclasses import dataclass
 
 """ =========================================================
 Dataclass for holding ansible inventory info:
-  - ip (configurable)
-  - os family
-  - major release version
-  - fqdn
+  - list of all nipr ips
+  - list of all dev ips
+  - list of all stand alone ips
+  - dictionary of stand alone ips/hostnames
+  - dictionary of dev ips/hostnames
+  - dictionary of nipr ips/hostnames
 ============================================================="""
 
 
@@ -13,13 +15,12 @@ Dataclass for holding ansible inventory info:
 class InventoryInfo:
     """Class for tracking host info"""
 
-    ip_nipr_dict
-    ip_stand_alone_dict
-    ip_dev_dict
-    name: str
-
-    def fqdn(self) -> str:
-        return self.name
+    ip_nipr_dict: dict
+    ip_stand_alone_dict: dict
+    ip_dev_dict: dict
+    nipr_ip_list: list
+    dev_ip_list: list
+    stand_alone_ip_list: list
 
     def nipr(self) -> dict:
         return self.ip_nipr_dict
@@ -29,3 +30,12 @@ class InventoryInfo:
 
     def stand_alone(self) -> dict:
         return self.ip_stand_alone_dict
+
+    def nipr_ips(self) -> list:
+        return self.nipr_ip_list
+
+    def dev_ips(self) -> list:
+        return self.dev_ip_list
+
+    def stand_alone_ips(self) -> list:
+        return self.stand_alone_ip_list

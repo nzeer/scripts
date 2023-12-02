@@ -1,6 +1,7 @@
 import pathlib as p
 
 from HostInfo import HostInfo
+from InventoryInfo import InventoryInfo
 
 """ =========================================================
 parse files in ./hosts and build inventories based off:
@@ -71,8 +72,23 @@ TODO: variables per inventory
 TODO: Server groupings (custom config options)
 ============================================================="""
 
+"""ip_nipr_dict: dict
+    ip_stand_alone_dict: dict
+    ip_dev_dict: dict
+    nipr_ip_list: list
+    dev_ip_list: list
+    stand_alone_ip_list: list"""
+
 
 def write_inventory(hosts=[], inv_dir=""):
+    inventory_info = InventoryInfo(
+        ip_nipr_dict={},
+        ip_stand_alone_dict={},
+        ip_dev_dict={},
+        nipr_ip_list=[],
+        dev_ip_list=[],
+        stand_alone_ip_list=[],
+    )
     path = p.Path(inv_dir)
     dir_exists = path.exists()
     try:
