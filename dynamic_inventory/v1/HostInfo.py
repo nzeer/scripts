@@ -29,7 +29,7 @@ class HostInfo:
     def os_family(self) -> str:
         return self.os_info_list[0]
 
-        
-print (type(self.name))
-<class 'str'>
+
+# print (type(self.name))
+# <class 'str'>
 # Expected behavior <class datetime.datetime>
