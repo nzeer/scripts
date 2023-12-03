@@ -159,15 +159,11 @@ def write_inventory(hosts=[], inv_dir=""):
                 inventory_path = os.path.join(release_path, "inventory")
                 path = p.Path(inventory_path)
                 path.touch()
-            print(inv.get_dev_ip())
-            print(inv.get_nipr_ip())
-            print(inv.get_stand_alone_ip())
-            print(inv.get_unknown_ip())
-            print(inventory_out.get_inventory_entries())
+        print(inventory_out.get_inventory_entries())
 
-            # for entry in inventory.list_inventory_entries:
-            # os_dir = p.Path(inv_dir+"/"+ entry.)
-            # pass
+        # for entry in inventory.list_inventory_entries:
+        # os_dir = p.Path(inv_dir+"/"+ entry.)
+        # pass
         # with open(file, "w") as f:
         # Write the INI data to the file
         #    for h in hosts:
