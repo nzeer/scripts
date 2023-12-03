@@ -137,7 +137,8 @@ def write_inventory(hosts=[], inv_dir=""):
             host = None
             inventory_entry = None
         # print(inventory)
-        for inv in inventory_out.get_inventory_entries():
+        ientry_list = inventory_out.get_inventory_entries()
+        for inv in ientry_list:
             host = HostInfo(
                 name="",
                 ip_list=[],
@@ -158,15 +159,15 @@ def write_inventory(hosts=[], inv_dir=""):
                 inventory_path = os.path.join(release_path, "inventory")
                 path = p.Path(inventory_path)
                 path.touch()
-            print(inv.get_dev_ip_list())
-            print(inv.get_nipr_ip_list())
-            print(inv.get_stand_alone_ip_list())
-            print(inv.get_unknown_ip_list())
-            print(inv.get_inventory_entries())
+            print(inv.get_dev_ip())
+            print(inv.get_nipr_ip())
+            print(inv.get_stand_alone_ip())
+            print(inv.get_unknown_ip())
+            print(inventory_out.get_inventory_entries())
 
             # for entry in inventory.list_inventory_entries:
             # os_dir = p.Path(inv_dir+"/"+ entry.)
-            pass
+            # pass
         # with open(file, "w") as f:
         # Write the INI data to the file
         #    for h in hosts:
@@ -176,7 +177,7 @@ def write_inventory(hosts=[], inv_dir=""):
         #    for ip in iplist:
         #        f.write("%s\n" % ip)  #   - os major
     except OSError as e:
-        print("there was a problem with creating file or path: ", file)
+        print("there was a problem")
 
 
 """ =========================================================
