@@ -1,0 +1,114 @@
+from dataclasses import dataclass
+from typing import List
+
+from libhostinfo import HostInfo
+
+""" =========================================================
+Dataclass for holding ansible inventory info:
+  - list of all nipr ips
+  - list of all dev ips
+  - list of all stand alone ips
+  - dictionary of stand alone ips/hostnames
+  - dictionary of dev ips/hostnames
+  - dictionary of nipr ips/hostnames
+============================================================="""
+
+
+@dataclass
+class InventoryEntry:
+    """Class for tracking host info"""
+
+    nipr_ip: str
+    dev_ip: str
+    stand_alone_ip: str
+    unknown_subnet_ip: str
+    hostname: str
+    ip_list: list
+
+    def get_nipr_ip(self) -> str:
+        return self.nipr_ip
+
+    def get_dev_ip(self) -> str:
+        return self.dev_ip
+
+    def get_stand_alone_ip(self) -> str:
+        return self.stand_alone_ip
+
+    def get_unknown_ip(self) -> str:
+        return self.unknown_subnet_ip
+
+    def get_host_name(self) -> str:
+        return self.hostname
+
+    def get_ip_list(self) -> list:
+        return self.ip_list
+
+    # def add_host(self, host=HostInfo(name="", ip_list==[], os_info_list=[])):
+    def add_host(self, host):
+        self.hostname = host.get_fqdn()
+        self.ip_list = host.get_ip_list()
+
+
+@dataclass
+class Inventory:
+    items: List[InventoryEntry]
+    list_nipr: list
+    list_dev: list
+    list_stand_alone: list
+    list_unknown: list
+    list_inventory_entries: list
+
+    def get_inventory_entries(self) -> list:
+        return self.list_inventory_entries
+
+    def get_nipr_ip_list(self) -> list:
+        return self.list_nipr
+
+    def set_nipr_ip_list(self, ip_list=[]):
+        self.list_nipr = ip_list
+
+    def get_dev_ip_list(self) -> list:
+        return self.list_dev
+
+    def set_dev_ip_list(self, ip_list=[]):
+        self.list_dev = ip_list
+
+    def get_stand_alone_ip_list(self) -> list:
+        return self.list_stand_alone
+
+    def set_stand_alone_ip_list(self, ip_list=[]):
+        self.list_stand_alone = ip_list
+
+    def get_unknown_ip_list(self) -> list:
+        return self.list_unknown
+
+    def set_unknown_ip_list(self, ip_list=[]):
+        self.list_unknown = ip_list
+
+    def add_nipr(self, ip=""):
+        self.get_nipr_ip_list().append(ip)
+
+    def add_dev(self, ip=""):
+        self.get_dev_ip_list().append(ip)
+
+    def add_stand_alone(self, ip=""):
+        self.get_stand_alone_ip_list().append(ip)
+
+    def add_unknown(self, ip=""):
+        self.get_unknown_ip_list().append(ip)
+
+    def add_entry(self, invEntry):
+        self.get_inventory_entries().append(invEntry)
+        self.add_ip(invEntry.get_ip_list())
+
+    def add_ip(self, ip_list=[]):
+        # check which network, and add to the appropriate list
+        for ip in ip_list:
+            if "192" in ip:
+                self.add_dev(ip)
+            elif "10.0." in ip:
+                self.add_stand_alone(ip)
+            elif "131." in ip:
+                self.add_nipr(ip)
+            else:
+                self.add_unknown(ip)

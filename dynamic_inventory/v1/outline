@@ -1,0 +1,16 @@
+host:
+- name
+- [ip list]
+- [os info list]
+- distro
+- version
+
+inventory entry
+- [list of ip lists]:
+  - [nipr]
+  - [stand alone]
+  - [dev]
+  - [unknown]
+- hostInfo host
+- hostname
+- todo: [vars list of k,v pair dictionaries]
