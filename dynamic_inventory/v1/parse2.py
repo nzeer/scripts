@@ -134,7 +134,7 @@ def write_inventory(hosts=[], inv_dir=""):
                 inventory.add_ip(ip)
             host = None
             inventory_entry = None
-        print(inventory)
+        # print(inventory)
         for inv in inventory.items:
             host = HostInfo(
                 name="",
@@ -156,7 +156,7 @@ def write_inventory(hosts=[], inv_dir=""):
                 inventory_path = os.path.join(release_path, "inventory")
                 path = p.Path(inventory_path)
                 path.touch()
-            print(host.ip_list)
+            # print(host.ip_list)
 
         for entry in inventory.list_inventory_entries:
             # os_dir = p.Path(inv_dir+"/"+ entry.)

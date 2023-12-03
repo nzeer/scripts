@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
+from typing_extensions import Iterator
+
 from libhostinfo import HostInfo
 
 """ =========================================================
@@ -103,12 +105,29 @@ class Inventory:
 
     def add_ip(self, ip_list=[]):
         # check which network, and add to the appropriate list
-        for ip in ip_list:
-            if "192" in ip:
-                self.add_dev(ip)
-            elif "10.0." in ip:
-                self.add_stand_alone(ip)
-            elif "131." in ip:
-                self.add_nipr(ip)
+        print(ip_list)
+        try:
+            if not type(ip_list) is list:
+                l = [ip_list]
             else:
-                self.add_unknown(ip)
+                l = ip_list
+            iterator = iter(l)
+            while True:
+                ip = next(iterator)
+                self.find_subnet(ip).append(ip)
+                print(ip)
+        except StopIteration:
+            pass
+            # self.find_subnet(i).append(i)
+        # else:
+        # self.find_subnet(ip).append(ip)
+
+    def find_subnet(self, ip) -> list:
+        if ip.find("192.168."):
+            return self.get_dev_ip_list()
+        elif ip.find("10.0."):
+            return self.get_stand_alone_ip_list()
+        elif ip.find("131."):
+            return self.get_nipr_ip_list()
+        else:
+            return self.get_unknown_ip_list()
