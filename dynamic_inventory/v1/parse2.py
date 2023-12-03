@@ -137,7 +137,7 @@ def write_inventory(hosts=[], inv_dir=""):
             host = None
             inventory_entry = None
         # print(inventory)
-        for inv in inventory.get_inventory_entries():
+        for inv in inventory_out.get_inventory_entries():
             host = HostInfo(
                 name="",
                 ip_list=[],
@@ -164,7 +164,7 @@ def write_inventory(hosts=[], inv_dir=""):
             print(inv.get_unknown_ip_list())
             print(inv.get_inventory_entries())
 
-        for entry in inventory.list_inventory_entries:
+            # for entry in inventory.list_inventory_entries:
             # os_dir = p.Path(inv_dir+"/"+ entry.)
             pass
         # with open(file, "w") as f:
