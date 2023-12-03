@@ -60,6 +60,7 @@ class HostInfo:
             self.set_os_info_list(os_info)
             # set the distro
             distro = self.get_os_info_list()[0]
+            print(distro)
             self.set_distro(distro)
             # set the version, if present
             if len(self.get_os_info_list()) > 1:

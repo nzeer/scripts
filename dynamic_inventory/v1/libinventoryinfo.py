@@ -26,6 +26,20 @@ class InventoryEntry:
     unknown_subnet_ip: str
     hostname: str
     ip_list: list
+    distro: str
+    release: str
+
+    def get_distro(self) -> str:
+        return self.distro
+
+    def set_distro(self, d):
+        self.distro = d
+
+    def get_release(self) -> str:
+        return self.release
+
+    def set_release(self, r):
+        self.release = r
 
     def get_nipr_ip(self) -> str:
         return self.nipr_ip
@@ -48,7 +62,10 @@ class InventoryEntry:
     # def add_host(self, host=HostInfo(name="", ip_list==[], os_info_list=[])):
     def add_host(self, host):
         self.hostname = host.get_fqdn()
-        self.ip_list = host.get_ip_list()
+        for h in host.get_ip_list():
+            self.get_ip_list().append(h)
+        self.release = host.get_version()
+        self.distro = host.get_distro()
 
 
 @dataclass
@@ -58,10 +75,10 @@ class Inventory:
     list_dev: list
     list_stand_alone: list
     list_unknown: list
-    list_inventory_entries: list
+    # list_inventory_entries: list
 
-    def get_inventory_entries(self) -> list:
-        return self.list_inventory_entries
+    def get_inventory_entries(self) -> List[InventoryEntry]:
+        return self.items
 
     def get_nipr_ip_list(self) -> list:
         return self.list_nipr
@@ -105,7 +122,6 @@ class Inventory:
 
     def add_ip(self, ip_list=[]):
         # check which network, and add to the appropriate list
-        print(ip_list)
         try:
             if not type(ip_list) is list:
                 l = [ip_list]
@@ -115,12 +131,8 @@ class Inventory:
             while True:
                 ip = next(iterator)
                 self.find_subnet(ip).append(ip)
-                print(ip)
         except StopIteration:
             pass
-            # self.find_subnet(i).append(i)
-        # else:
-        # self.find_subnet(ip).append(ip)
 
     def find_subnet(self, ip) -> list:
         if ip.find("192.168."):
@@ -130,4 +142,5 @@ class Inventory:
         elif ip.find("131."):
             return self.get_nipr_ip_list()
         else:
+            print("unknown")
             return self.get_unknown_ip_list()

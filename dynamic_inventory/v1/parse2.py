@@ -95,13 +95,12 @@ def write_inventory(hosts=[], inv_dir=""):
         os_distro="",
         os_release="",
     )"""
-    inventory = Inventory(
+    inventory_out = Inventory(
         items=[],
         list_nipr=[],
         list_dev=[],
         list_stand_alone=[],
         list_unknown=[],
-        list_inventory_entries=[],
     )
     path = p.Path(inv_dir)
     dir_exists = path.exists()
@@ -117,25 +116,28 @@ def write_inventory(hosts=[], inv_dir=""):
                 os_distro_version_major="",
             )
             inventory_entry = InventoryEntry(
-                nipr_ip=[],
-                dev_ip=[],
-                stand_alone_ip=[],
-                unknown_subnet_ip=[],
+                nipr_ip="",
+                dev_ip="",
+                stand_alone_ip="",
+                unknown_subnet_ip="",
                 hostname="",
                 ip_list=[],
+                distro="",
+                release="",
             )
             # content: "{{ ansible_fqdn, ansible_all_ipv4_addresses, [os_distro, os_version] }}"
             # ('localhost-live.maersk.homenet.lan', ['172.16.20.156', '172.16.30.161'], ['Fedora', '39'])
             host = h
             inventory_entry.add_host(h)
             # inventory.items.append(h)
-            inventory.get_inventory_entries().append(inventory_entry)
-            for ip in inventory_entry.get_ip_list():
-                inventory.add_ip(ip)
+            inventory_out.get_inventory_entries().append(inventory_entry)
+            inventory_out.add_ip(inventory_entry.get_ip_list())
+            print(inventory_out)
+            print(inventory_entry)
             host = None
             inventory_entry = None
         # print(inventory)
-        for inv in inventory.items:
+        for inv in inventory.get_inventory_entries():
             host = HostInfo(
                 name="",
                 ip_list=[],
@@ -143,20 +145,24 @@ def write_inventory(hosts=[], inv_dir=""):
                 os_distro_version_major="",
                 os_distro="",
             )
-            host = inv
-            os_path = os.path.join(inv_dir, host.get_distro)
+            # host = inv
+            os_path = os.path.join(inv_dir, inv.get_distro())
             path = p.Path(os_path)
             if not os.path.exists(os_path):
                 path = p.Path(os_path)
                 path.mkdir()
-            release_path = os.path.join(os_path, host.get_version)
+            release_path = os.path.join(os_path, inv.get_release())
             if not os.path.exists(release_path):
                 path = p.Path(release_path)
                 path.mkdir()
                 inventory_path = os.path.join(release_path, "inventory")
                 path = p.Path(inventory_path)
                 path.touch()
-            # print(host.ip_list)
+            print(inv.get_dev_ip_list())
+            print(inv.get_nipr_ip_list())
+            print(inv.get_stand_alone_ip_list())
+            print(inv.get_unknown_ip_list())
+            print(inv.get_inventory_entries())
 
         for entry in inventory.list_inventory_entries:
             # os_dir = p.Path(inv_dir+"/"+ entry.)
