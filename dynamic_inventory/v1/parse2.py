@@ -4,6 +4,9 @@ import pathlib as p
 from libhostinfo import HostInfo
 from libinventoryinfo import Inventory, InventoryEntry
 
+# print debug messages to the console at runtime
+debug = True
+
 """ =========================================================
 parse files in ./hosts and build inventories based off:
   - ip (configurable)
@@ -17,10 +20,9 @@ load host data into HostInfo instance
 
 Return Type: HostInfo
 ============================================================="""
-debug = True
-
 def load_host(file):
     current_host = HostInfo("", [], [], "", "")
+    if debug: print("reading file:", file)
     try:
         path = p.Path(file)
         if not path.exists():
@@ -33,7 +35,7 @@ def load_host(file):
                     file,
                 ).readline()
             )
-
+            if debug: print("loading host: ", res)
             return HostInfo(res[0], res[1], res[2], res[2][0], res[2][1])
     except OSError as e:
         print(e.strerror)
@@ -45,9 +47,8 @@ Load all hosts in a given directory
 
 ReturnType: list of HostInfo objects
 ============================================================="""
-
-
 def load_hosts(directory):
+    if debug: print("Using directory: ", directory)
     loaded_hosts = []
     host = HostInfo("", [], [], "", "")
     try:
@@ -64,7 +65,6 @@ def load_hosts(directory):
         pass
     return loaded_hosts
 
-
 """ =========================================================
 Write out inventory files broken out by
   - Network (subnet)
@@ -73,42 +73,26 @@ TODO: create a world file
 TODO: variables per inventory
 TODO: Server groupings (custom config options)
 ============================================================="""
-
-"""ip_nipr_dict: dict
-    ip_stand_alone_dict: dict
-    ip_dev_dict: dict
-    nipr_ip_list: list
-    dev_ip_list: list
-    stand_alone_ip_list: list
-    unknown_subnet_ip_list: list
-    hostname: str
-    os_distro: str
-    os_release: str"""
-
-
 def write_inventory(hosts=[], inv_dir=""):
-    """inventory_entry = InventoryEntry(
-        nipr_ip_list=[],
-        dev_ip_list=[],
-        stand_alone_ip_list=[],
-        unknown_subnet_ip_list=[],
-        hostname="",
-        os_distro="",
-        os_release="",
-    )"""
+    if debug:print("Using directory: ", inv_dir)
     inventory_out = Inventory(
         items=[],
         list_nipr=[],
         list_dev=[],
         list_stand_alone=[],
         list_unknown=[],
+        dict_formatted_host_entries={},
     )
+    # set our path and flag if it exists
     path = p.Path(inv_dir)
     dir_exists = path.exists()
     try:
+        # create our output directory
         if not dir_exists:
             path.mkdir()
+        # iterate through all hosts
         for h in hosts:
+            # instantiate blank host
             host = HostInfo(
                 name="",
                 ip_list=[],
@@ -116,6 +100,7 @@ def write_inventory(hosts=[], inv_dir=""):
                 os_distro="",
                 os_distro_version_major="",
             )
+            # instantiate blank inventory entry
             inventory_entry = InventoryEntry(
                 nipr_ip="",
                 dev_ip="",
@@ -129,15 +114,17 @@ def write_inventory(hosts=[], inv_dir=""):
             # content: "{{ ansible_fqdn, ansible_all_ipv4_addresses, [os_distro, os_version] }}"
             # ('localhost-live.maersk.homenet.lan', ['172.16.20.156', '172.16.30.161'], ['Fedora', '39'])
             host = h
+            # add host to inventory entry
             inventory_entry.add_host(h)
-            # inventory.items.append(h)
+            # store inventory entry in inventory
             inventory_out.get_inventory_entries().append(inventory_entry)
+            # add ip to appropriate ip list
             inventory_out.add_ip(inventory_entry.get_ip_list())
             if debug: print(inventory_out)
             if debug: print(inventory_entry)
+            # cleanup and prepare for the next iteration
             host = None
             inventory_entry = None
-        # print(inventory)
         ientry_list = inventory_out.get_inventory_entries()
         for inv in ientry_list:
             host = HostInfo(
@@ -181,8 +168,6 @@ def write_inventory(hosts=[], inv_dir=""):
 """ =========================================================
 Define an entry point
 ============================================================="""
-
-
 def main():
     hosts_info_directory = "./hosts"
     inventory_directory = "./inventories"

@@ -74,6 +74,7 @@ class Inventory:
     list_dev: list
     list_stand_alone: list
     list_unknown: list
+    dict_formatted_host_entries: dict
     # list_inventory_entries: list
 
     def print_ips(self):
@@ -81,6 +82,9 @@ class Inventory:
         print("nipr: ", self.get_nipr_ip_list())
         print("unknown: ", self.get_unknown_ip_list())
         print("standalone: ", self.get_stand_alone_ip_list())
+    
+    def get_dict_formatted_host_entries(self) -> dict:
+        return self.dict_formatted_host_entries
 
     def get_inventory_entries(self) -> List[InventoryEntry]:
         return self.items
