@@ -149,9 +149,15 @@ def write_inventory(hosts=[], inv_dir=""):
                 inventory_path = os.path.join(release_path, "inventory")
                 path = p.Path(inventory_path)
                 path.touch()
+            if inv_entry.get_stand_alone_ip():
+                file1 = open(inventory_path, "a")  # append mode
+                file1.write("\n[%s]\n" % inv_entry.get_host_name())
+                file1.write("%s\n" % inv_entry.get_stand_alone_ip())
+                file1.close()
         if debug: print(inventory_out.get_inventory_entries())
         if debug: print(inventory_out.print_ips())
 
+        # write ./inventories/inventory file, broken up across known subnets
         inventory_file = os.path.join(inv_dir, "inventory")
         dev_ips = inventory_out.get_dev_ip_list()
         nipr_ips = inventory_out.get_nipr_ip_list()
