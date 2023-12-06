@@ -5,6 +5,8 @@ from typing_extensions import Iterator
 
 from libhostinfo import HostInfo
 
+debug = True
+
 """ =========================================================
 Dataclass for holding ansible inventory info:
   - list of all nipr ips
@@ -45,6 +47,18 @@ class InventoryEntry:
 
     def get_dev_ip(self) -> str:
         return self.dev_ip
+    
+    def set_dev_ip(self, ip):
+        self.dev_ip = ip
+    
+    def set_nipr_ip(self, ip):
+        self.nipr_ip = ip
+
+    def set_unknown_ip(self, ip):
+        self.unknown_subnet_ip = ip
+
+    def set_stand_alone_ip(self, ip):
+        self.stand_alone_ip = ip
 
     def get_stand_alone_ip(self) -> str:
         return self.stand_alone_ip
@@ -54,17 +68,36 @@ class InventoryEntry:
 
     def get_host_name(self) -> str:
         return self.hostname
+    
+    def set_host_name(self, hn):
+        self.hostname = hn
 
     def get_ip_list(self) -> list:
         return self.ip_list
 
     # def add_host(self, host=HostInfo(name="", ip_list==[], os_info_list=[])):
     def add_host(self, host):
-        self.hostname = host.get_fqdn()
+        self.set_host_name(host.get_fqdn())
         for h in host.get_ip_list():
             self.get_ip_list().append(h)
-        self.release = host.get_version()
-        self.distro = host.get_distro()
+            self.record_subnet(h)
+        self.set_release(host.get_version())
+        self.set_distro(host.get_distro())
+    
+    def record_subnet(self, ip):
+        if debug: print("parsing: ", self.get_host_name())
+        if debug: print("inv_entry_ip_switch", ip)
+        octets = ip.split('.')
+        if debug: print("switching on ", octets[0])
+        if octets[0] == '192':
+            self.set_dev_ip(ip)
+        elif octets[0] == '10':
+            self.set_stand_alone_ip(ip)
+        elif octets[0] == '131':
+            self.set_nipr_ip(ip)
+        else:
+            self.set_unknown_ip(ip)
+            if debug: print("found unknown inside inv_entry: ", self.get_unknown_ip())
 
 @dataclass
 class Inventory:
