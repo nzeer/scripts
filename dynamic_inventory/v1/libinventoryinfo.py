@@ -17,7 +17,7 @@ Dataclass for holding ansible inventory info:
 
 @dataclass
 class InventoryEntry:
-    """Class for tracking host info"""
+    """Class for tracking inventory entry info"""
 
     nipr_ip: str
     dev_ip: str
@@ -68,12 +68,14 @@ class InventoryEntry:
 
 @dataclass
 class Inventory:
+    """Class for tracking inventory info"""
     items: List[InventoryEntry]
     list_nipr: list
     list_dev: list
     list_stand_alone: list
     list_unknown: list
     list_formatted_host_entries: List[dict]
+    dict_unknown_subnet: dict
 
     def print_ips(self):
         print("dev: ", self.get_dev_ip_list())
@@ -82,6 +84,9 @@ class Inventory:
         print("standalone: ", self.get_stand_alone_ip_list())
         print("formatted hosts: ", self.get_list_formatted_host_entries())
     
+    def get_dict_unknown_subnet(self) -> dict:
+        return self.dict_unknown_subnet
+
     def get_list_formatted_host_entries(self) -> List[dict]:
         return self.list_formatted_host_entries
 
@@ -139,6 +144,7 @@ class Inventory:
             while True:
                 ip = next(iterator)
                 self.find_subnet(ip).append(ip)
+
         except StopIteration:
             pass
 

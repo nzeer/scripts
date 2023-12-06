@@ -81,6 +81,7 @@ def write_inventory(hosts=[], inv_dir=""):
         list_stand_alone=[],
         list_unknown=[],
         list_formatted_host_entries=[],
+        dict_unknown_subnet={},
     )
     # set our path and flag if it exists
     path = p.Path(inv_dir)
