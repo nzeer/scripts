@@ -136,6 +136,7 @@ def write_inventory(hosts=[], inv_dir=""):
                 os_distro_version_major="",
                 os_distro="",
             )
+            # create distro/release directory structure
             os_path = os.path.join(inv_dir, inv_entry.get_distro())
             path = p.Path(os_path)
             if not os.path.exists(os_path):
@@ -149,11 +150,13 @@ def write_inventory(hosts=[], inv_dir=""):
                 inventory_path = os.path.join(release_path, "inventory")
                 path = p.Path(inventory_path)
                 path.touch()
+            # ignore anything but stand alone ip's since we dual home everything
             if inv_entry.get_stand_alone_ip():
                 file1 = open(inventory_path, "a")  # append mode
                 file1.write("\n[%s]\n" % inv_entry.get_host_name())
                 file1.write("%s\n" % inv_entry.get_stand_alone_ip())
                 file1.close()
+
         if debug: print(inventory_out.get_inventory_entries())
         if debug: print(inventory_out.print_ips())
 
@@ -164,6 +167,7 @@ def write_inventory(hosts=[], inv_dir=""):
         sa_ips = inventory_out.get_stand_alone_ip_list()
         unknown_ips = inventory_out.get_unknown_ip_list()
 
+        # write out all hosts by subnet in top level inventory file
         with open(inventory_file, "w") as f:
             if unknown_ips:
                 if debug: print("unknown ips: ", unknown_ips)
