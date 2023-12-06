@@ -142,24 +142,20 @@ def write_inventory(hosts=[], inv_dir=""):
 
             # ignore anything but stand alone ip's since we dual home everything
             write_stand_alone(inv_path, inv_entry.get_host_name(), inv_entry.get_stand_alone_ip())
-            """if inv_entry.get_stand_alone_ip():
-                file1 = open(inv_path, "a")  # append mode
-                file1.write("\n[%s]\n" % inv_entry.get_host_name())
-                file1.write("%s\n" % inv_entry.get_stand_alone_ip())
-                file1.close()"""
-
+            
         if debug: print(inventory_out.get_inventory_entries())
         if debug: print(inventory_out.print_ips())
 
         # write ./inventories/inventory file, broken up across known subnets
         inventory_file = os.path.join(inv_dir, "inventory")
-        dev_ips = inventory_out.get_dev_ip_list()
+        """dev_ips = inventory_out.get_dev_ip_list()
         nipr_ips = inventory_out.get_nipr_ip_list()
         sa_ips = inventory_out.get_stand_alone_ip_list()
-        unknown_ips = inventory_out.get_unknown_ip_list()
+        unknown_ips = inventory_out.get_unknown_ip_list()"""
 
         # write out all hosts by subnet in top level inventory file
-        with open(inventory_file, "w") as f:
+        write_subnets(inventory_file, inventory_out.get_unknown_ip_list(), inventory_out.get_stand_alone_ip_list(), inventory_out.get_nipr_ip_list(), inventory_out.get_dev_ip_list())
+        """with open(inventory_file, "w") as f:
             if unknown_ips:
                 if debug: print("unknown ips: ", unknown_ips)
                 f.write("\n[unknown]\n")
@@ -182,9 +178,36 @@ def write_inventory(hosts=[], inv_dir=""):
                 if debug: print("standalone ips: ", sa_ips)
                 f.write("\n[standalone]\n")
                 for ip in sa_ips:
-                    f.write("%s\n" % ip)
+                    f.write("%s\n" % ip)"""
     except OSError as e:
         print("there was a problem")
+
+def write_subnets(inv_file, list_unknown, list_sa, list_nipr, list_dev):
+    # write out all hosts by subnet in top level inventory file
+    with open(inv_file, "w") as f:
+        if list_unknown:
+            if debug: print("unknown ips: ", list_unknown)
+            f.write("\n[unknown]\n")
+            for ip in list_unknown:
+                f.write("%s\n" % ip)
+        
+        if list_nipr:
+            if debug: print("nipr ips: ", list_nipr)
+            f.write("\n[nipr]\n")
+            for ip in list_nipr:
+                f.write("%s\n" % ip)
+        
+        if list_dev:
+            if debug: print("dev ips: ", list_dev)
+            f.write("\n[dev]\n")
+            for ip in list_dev:
+                f.write("%s\n" % ip)
+
+        if list_sa:
+            if debug: print("standalone ips: ", list_sa)
+            f.write("\n[standalone]\n")
+            for ip in list_sa:
+                f.write("%s\n" % ip)
 
 def create_directory_structure(inventory_directory, distro, release) -> str:
     os_path = os.path.join(inventory_directory, distro)
