@@ -1,13 +1,17 @@
 # Import the json and configparser modules
 import configparser
 import json
+import pathlib as p
+
+debug = False
 
 json_file = "./hosts.json"
 inventory_file = "./inventory"
-
+hosts_directory = "./hosts"
 
 # Define a function to load JSON data from a file
 def load_json(file):
+    if debug: print("using file: ", file)
     # Open the file in read mode
     with open(file, "r") as f:
         # Load the JSON data and return it
@@ -33,10 +37,10 @@ def write_inventory(data, file):
                 # only configure for host entry if there's a host name to work with.
                 if curdict["ip"] != curdict["name"]:
                     devices.append(curdict)
-                    print(curdict)
+                    #if debug: print(curdict)
                 iplist.append(curdict["ip"])
             continue
-
+    if debug: print("\nfindings: ", myfindings)
     with open(file, "w") as f:
         # Write the data to the file
         for d in devices:
@@ -47,6 +51,9 @@ def write_inventory(data, file):
         f.write("\n[devices]\n")
         for entry in iplist:
             f.write("%s\n" % entry)
+    # create hosts directory
+    path = p.Path(hosts_directory)
+    if not path.exists(): path.mkdir()
 
 
 # Define a main function
@@ -59,8 +66,9 @@ def main():
     json_data = load_json(json_file)
     # Call the write_ini function and write the INI data to the file
     write_inventory(json_data, inventory_file)
+    
     # Print a success message
-    # print(f"Successfully converted {json_file} to {ini_file}")
+    if debug: print(f"Successfully converted {json_file} to {inventory_file}")
 
 
 # Check if the script is run as the main module
