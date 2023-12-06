@@ -141,6 +141,7 @@ def write_inventory(hosts=[], inv_dir=""):
                 path = p.Path(os_path)
                 path.mkdir()
             release_path = os.path.join(os_path, inv.get_release())
+            if debug: print("inventory obj: ", inv)
             if not os.path.exists(release_path):
                 path = p.Path(release_path)
                 path.mkdir()
@@ -150,6 +151,32 @@ def write_inventory(hosts=[], inv_dir=""):
         if debug: print(inventory_out.get_inventory_entries())
         if debug: print(inventory_out.print_ips())
 
+        inventory_file = os.path.join(inv_dir, "inventory")
+        dev_ips = inventory_out.get_dev_ip_list()
+        nipr_ips = inventory_out.get_nipr_ip_list()
+        sa_ips = inventory_out.get_stand_alone_ip_list()
+        unknown_ips = inventory_out.get_unknown_ip_list()
+
+        with open(inventory_file, "w") as f:
+            if unknown_ips:
+                f.write("[unknown]\n")
+                for ip in inventory_out.get_unknown_ip_list():
+                    f.write("%s\n" % ip)
+            
+            if nipr_ips:
+                f.write("\n[nipr]\n")
+                for ip in inventory_out.get_nipr_ip_list():
+                    f.write("%s\n" % ip)
+            
+            if dev_ips:
+                f.write("\n[dev]\n")
+                for ip in inventory_out.get_dev_ip_list():
+                    f.write("%s\n" % ip)
+
+            if sa_ips:
+                f.write("\n[standalone]\n")
+                for ip in inventory_out.get_stand_alone_ip_list():
+                    f.write("%s\n" % ip)
         # for entry in inventory.list_inventory_entries:
         # os_dir = p.Path(inv_dir+"/"+ entry.)
         # pass
@@ -157,7 +184,6 @@ def write_inventory(hosts=[], inv_dir=""):
         # Write the INI data to the file
         #    for h in hosts:
         #        f.write("\n[%s]\n" % h["name"])
-        #        f.write("%s\n" % h["ip"])
         #    f.write("\n[devices]\n")
         #    for ip in iplist:
         #        f.write("%s\n" % ip)  #   - os major
