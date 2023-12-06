@@ -120,13 +120,15 @@ def write_inventory(hosts=[], inv_dir=""):
             inventory_out.get_inventory_entries().append(inventory_entry)
             # add ip to appropriate ip list
             inventory_out.add_ip(inventory_entry.get_ip_list())
-            if debug: print(inventory_out)
-            if debug: print(inventory_entry)
+            if debug: print("inventory: ", inventory_out)
+            if debug: print("inventory entry: ", inventory_entry)
             # cleanup and prepare for the next iteration
             host = None
             inventory_entry = None
-        ientry_list = inventory_out.get_inventory_entries()
-        for inv in ientry_list:
+        #ientry_list = inventory_out.get_inventory_entries()
+        #for inv_entry in ientry_list:
+        for inv_entry in inventory_out.get_inventory_entries():
+            if debug: print("parsing inventory entry: ", inv_entry)
             host = HostInfo(
                 name="",
                 ip_list=[],
@@ -134,14 +136,13 @@ def write_inventory(hosts=[], inv_dir=""):
                 os_distro_version_major="",
                 os_distro="",
             )
-            # host = inv
-            os_path = os.path.join(inv_dir, inv.get_distro())
+            os_path = os.path.join(inv_dir, inv_entry.get_distro())
             path = p.Path(os_path)
             if not os.path.exists(os_path):
                 path = p.Path(os_path)
                 path.mkdir()
-            release_path = os.path.join(os_path, inv.get_release())
-            if debug: print("inventory obj: ", inv)
+            release_path = os.path.join(os_path, inv_entry.get_release())
+            if debug: print("inventory obj: ", inv_entry)
             if not os.path.exists(release_path):
                 path = p.Path(release_path)
                 path.mkdir()
@@ -159,23 +160,27 @@ def write_inventory(hosts=[], inv_dir=""):
 
         with open(inventory_file, "w") as f:
             if unknown_ips:
+                if debug: print("unknown ips: ", unknown_ips)
                 f.write("[unknown]\n")
-                for ip in inventory_out.get_unknown_ip_list():
+                for ip in unknown_ips:
                     f.write("%s\n" % ip)
             
             if nipr_ips:
+                if debug: print("nipr ips: ", nipr_ips)
                 f.write("\n[nipr]\n")
-                for ip in inventory_out.get_nipr_ip_list():
+                for ip in nipr_ips:
                     f.write("%s\n" % ip)
             
             if dev_ips:
+                if debug: print("dev ips: ", dev_ips)
                 f.write("\n[dev]\n")
-                for ip in inventory_out.get_dev_ip_list():
+                for ip in dev_ips:
                     f.write("%s\n" % ip)
 
             if sa_ips:
+                if debug: print("standalone ips: ", sa_ips)
                 f.write("\n[standalone]\n")
-                for ip in inventory_out.get_stand_alone_ip_list():
+                for ip in sa_ips:
                     f.write("%s\n" % ip)
         # for entry in inventory.list_inventory_entries:
         # os_dir = p.Path(inv_dir+"/"+ entry.)
