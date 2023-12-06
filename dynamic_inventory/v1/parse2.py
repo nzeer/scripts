@@ -147,8 +147,8 @@ def write_inventory(hosts=[], inv_dir=""):
         if debug: print(inventory_out.print_ips())
 
         # write ./inventories/inventory file, broken up across known subnets
-        inventory_file = os.path.join(inv_dir, "inventory")
-        write_subnets(inventory_file, inventory_out.get_unknown_ip_list(), inventory_out.get_stand_alone_ip_list(), inventory_out.get_nipr_ip_list(), inventory_out.get_dev_ip_list())
+        #inventory_file = os.path.join(inv_dir, "inventory")
+        write_subnets(os.path.join(inv_dir, "inventory"), inventory_out.get_unknown_ip_list(), inventory_out.get_stand_alone_ip_list(), inventory_out.get_nipr_ip_list(), inventory_out.get_dev_ip_list())
     except OSError as e:
         print("there was a problem")
 
@@ -210,8 +210,6 @@ def main():
 
     # load all host info from text files (tuples) in a given directory
     hosts_loaded = load_hosts(hosts_info_directory)
-    # for h in hosts_loaded:
-    #    print(h)
     write_inventory(hosts_loaded, inventory_directory)
 
 
