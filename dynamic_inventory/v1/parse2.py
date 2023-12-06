@@ -125,8 +125,8 @@ def write_inventory(hosts=[], inv_dir=""):
             # cleanup and prepare for the next iteration
             host = None
             inventory_entry = None
-        #ientry_list = inventory_out.get_inventory_entries()
-        #for inv_entry in ientry_list:
+        
+        # iterate through inventory entries
         for inv_entry in inventory_out.get_inventory_entries():
             if debug: print("parsing inventory entry: ", inv_entry)
             host = HostInfo(
@@ -136,26 +136,17 @@ def write_inventory(hosts=[], inv_dir=""):
                 os_distro_version_major="",
                 os_distro="",
             )
-            # create distro/release directory structure
-            os_path = os.path.join(inv_dir, inv_entry.get_distro())
-            path = p.Path(os_path)
-            if not os.path.exists(os_path):
-                path = p.Path(os_path)
-                path.mkdir()
-            release_path = os.path.join(os_path, inv_entry.get_release())
             if debug: print("inventory obj: ", inv_entry)
-            if not os.path.exists(release_path):
-                path = p.Path(release_path)
-                path.mkdir()
-                inventory_path = os.path.join(release_path, "inventory")
-                path = p.Path(inventory_path)
-                path.touch()
+            # create distro/release directory structure, returning path to distro/release inventory file
+            inv_path = create_directory_structure(inv_dir, inv_entry.get_distro(), inv_entry.get_release())
+
             # ignore anything but stand alone ip's since we dual home everything
-            if inv_entry.get_stand_alone_ip():
-                file1 = open(inventory_path, "a")  # append mode
+            write_stand_alone(inv_path, inv_entry.get_host_name(), inv_entry.get_stand_alone_ip())
+            """if inv_entry.get_stand_alone_ip():
+                file1 = open(inv_path, "a")  # append mode
                 file1.write("\n[%s]\n" % inv_entry.get_host_name())
                 file1.write("%s\n" % inv_entry.get_stand_alone_ip())
-                file1.close()
+                file1.close()"""
 
         if debug: print(inventory_out.get_inventory_entries())
         if debug: print(inventory_out.print_ips())
@@ -171,7 +162,7 @@ def write_inventory(hosts=[], inv_dir=""):
         with open(inventory_file, "w") as f:
             if unknown_ips:
                 if debug: print("unknown ips: ", unknown_ips)
-                f.write("[unknown]\n")
+                f.write("\n[unknown]\n")
                 for ip in unknown_ips:
                     f.write("%s\n" % ip)
             
@@ -192,19 +183,31 @@ def write_inventory(hosts=[], inv_dir=""):
                 f.write("\n[standalone]\n")
                 for ip in sa_ips:
                     f.write("%s\n" % ip)
-        # for entry in inventory.list_inventory_entries:
-        # os_dir = p.Path(inv_dir+"/"+ entry.)
-        # pass
-        # with open(file, "w") as f:
-        # Write the INI data to the file
-        #    for h in hosts:
-        #        f.write("\n[%s]\n" % h["name"])
-        #    f.write("\n[devices]\n")
-        #    for ip in iplist:
-        #        f.write("%s\n" % ip)  #   - os major
     except OSError as e:
         print("there was a problem")
 
+def create_directory_structure(inventory_directory, distro, release) -> str:
+    os_path = os.path.join(inventory_directory, distro)
+    path = p.Path(os_path)
+    if not os.path.exists(os_path):
+        path = p.Path(os_path)
+        path.mkdir()
+    release_path = os.path.join(os_path, release)
+    inventory_path = os.path.join(release_path, "inventory")
+    if not os.path.exists(release_path):
+        path = p.Path(release_path)
+        path.mkdir()
+        path = p.Path(inventory_path)
+        path.touch()
+    return inventory_path
+
+def write_stand_alone(inv_path, host_name, ip):
+    if ip:
+        file1 = open(inv_path, "a")  # append mode
+        file1.write("\n[%s]\n" % host_name)
+        file1.write("%s\n" % ip)
+        file1.close()
+    
 """ =========================================================
 Define an entry point
 ============================================================="""
