@@ -148,37 +148,7 @@ def write_inventory(hosts=[], inv_dir=""):
 
         # write ./inventories/inventory file, broken up across known subnets
         inventory_file = os.path.join(inv_dir, "inventory")
-        """dev_ips = inventory_out.get_dev_ip_list()
-        nipr_ips = inventory_out.get_nipr_ip_list()
-        sa_ips = inventory_out.get_stand_alone_ip_list()
-        unknown_ips = inventory_out.get_unknown_ip_list()"""
-
-        # write out all hosts by subnet in top level inventory file
         write_subnets(inventory_file, inventory_out.get_unknown_ip_list(), inventory_out.get_stand_alone_ip_list(), inventory_out.get_nipr_ip_list(), inventory_out.get_dev_ip_list())
-        """with open(inventory_file, "w") as f:
-            if unknown_ips:
-                if debug: print("unknown ips: ", unknown_ips)
-                f.write("\n[unknown]\n")
-                for ip in unknown_ips:
-                    f.write("%s\n" % ip)
-            
-            if nipr_ips:
-                if debug: print("nipr ips: ", nipr_ips)
-                f.write("\n[nipr]\n")
-                for ip in nipr_ips:
-                    f.write("%s\n" % ip)
-            
-            if dev_ips:
-                if debug: print("dev ips: ", dev_ips)
-                f.write("\n[dev]\n")
-                for ip in dev_ips:
-                    f.write("%s\n" % ip)
-
-            if sa_ips:
-                if debug: print("standalone ips: ", sa_ips)
-                f.write("\n[standalone]\n")
-                for ip in sa_ips:
-                    f.write("%s\n" % ip)"""
     except OSError as e:
         print("there was a problem")
 
