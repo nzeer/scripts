@@ -80,7 +80,7 @@ def write_inventory(hosts=[], inv_dir=""):
         list_dev=[],
         list_stand_alone=[],
         list_unknown=[],
-        dict_formatted_host_entries={},
+        list_formatted_host_entries=[],
     )
     # set our path and flag if it exists
     path = p.Path(inv_dir)

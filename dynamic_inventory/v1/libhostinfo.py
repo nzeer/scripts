@@ -10,7 +10,6 @@ Dataclass for holding ansible setup facts:
   - fqdn
 ============================================================="""
 
-
 @dataclass
 class HostInfo:
     """Class for tracking host info"""
