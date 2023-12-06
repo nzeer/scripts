@@ -41,7 +41,6 @@ def load_host(file):
         print(e.strerror)
     return current_host
 
-
 """ =========================================================
 Load all hosts in a given directory
 
@@ -163,7 +162,6 @@ def write_inventory(hosts=[], inv_dir=""):
         #        f.write("%s\n" % ip)  #   - os major
     except OSError as e:
         print("there was a problem")
-
 
 """ =========================================================
 Define an entry point
