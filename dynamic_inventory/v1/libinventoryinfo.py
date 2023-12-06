@@ -65,7 +65,9 @@ class InventoryEntry:
         for h in host.get_ip_list():
             self.get_ip_list().append(h)
         self.release = host.get_version()
+        print("Host distro: ", host.get_distro())
         self.distro = host.get_distro()
+        print("self distro: ", self.get_distro())
 
 
 @dataclass
