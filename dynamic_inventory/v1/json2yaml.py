@@ -15,7 +15,7 @@ def load_json(file):
         return data
 
 
-# Define a function to write INI data to a file
+# Define a function to write data to a file
 def write_inventory(data, file):
     myfindings = {}
     devices = []
@@ -30,6 +30,7 @@ def write_inventory(data, file):
             myfindings = list(data.items())[0][1]["hostvars"]
             for k in myfindings:
                 curdict = myfindings[k]
+                # only configure for host entry if there's a host name to work with.
                 if curdict["ip"] != curdict["name"]:
                     devices.append(curdict)
                     print(curdict)
@@ -37,10 +38,12 @@ def write_inventory(data, file):
             continue
 
     with open(file, "w") as f:
-        # Write the INI data to the file
+        # Write the data to the file
         for d in devices:
+            # write out individual host entries for anything with a host name.
             f.write("\n[%s]\n" % d["name"])
             f.write("%s\n" % d["ip"])
+        # write out all ip's to their own section
         f.write("\n[devices]\n")
         for entry in iplist:
             f.write("%s\n" % entry)
