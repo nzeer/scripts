@@ -33,7 +33,8 @@ def load_host(file):
                     file,
                 ).readline()
             )
-            return HostInfo(res[0], res[1], res[2], res[1][0], res[2][1])
+
+            return HostInfo(res[0], res[1], res[2], res[2][0], res[2][1])
     except OSError as e:
         print(e.strerror)
     return current_host
@@ -57,6 +58,7 @@ def load_hosts(directory):
             for h in [f for f in path.iterdir() if f.is_file()]:
                 host = HostInfo("", [], [], "", "")
                 host = load_host(h)
+                print("load hosts distro: ", host.get_distro())
                 loaded_hosts.append(host)
                 host = None
     except OSError as e:
