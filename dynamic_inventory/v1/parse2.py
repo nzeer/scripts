@@ -17,7 +17,7 @@ load host data into HostInfo instance
 
 Return Type: HostInfo
 ============================================================="""
-
+debug = True
 
 def load_host(file):
     current_host = HostInfo("", [], [], "", "")
@@ -58,7 +58,6 @@ def load_hosts(directory):
             for h in [f for f in path.iterdir() if f.is_file()]:
                 host = HostInfo("", [], [], "", "")
                 host = load_host(h)
-                print("load hosts distro: ", host.get_distro())
                 loaded_hosts.append(host)
                 host = None
     except OSError as e:
@@ -134,8 +133,8 @@ def write_inventory(hosts=[], inv_dir=""):
             # inventory.items.append(h)
             inventory_out.get_inventory_entries().append(inventory_entry)
             inventory_out.add_ip(inventory_entry.get_ip_list())
-            print(inventory_out)
-            print(inventory_entry)
+            if debug: print(inventory_out)
+            if debug: print(inventory_entry)
             host = None
             inventory_entry = None
         # print(inventory)
@@ -161,8 +160,8 @@ def write_inventory(hosts=[], inv_dir=""):
                 inventory_path = os.path.join(release_path, "inventory")
                 path = p.Path(inventory_path)
                 path.touch()
-        print(inventory_out.get_inventory_entries())
-        print(inventory_out.print_ips())
+        if debug: print(inventory_out.get_inventory_entries())
+        if debug: print(inventory_out.print_ips())
 
         # for entry in inventory.list_inventory_entries:
         # os_dir = p.Path(inv_dir+"/"+ entry.)
