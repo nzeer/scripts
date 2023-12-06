@@ -76,6 +76,12 @@ class Inventory:
     list_unknown: list
     # list_inventory_entries: list
 
+    def print_ips(self):
+        print("dev: ", self.get_dev_ip_list())
+        print("nipr: ", self.get_nipr_ip_list())
+        print("unknown: ", self.get_unknown_ip_list())
+        print("standalone: ", self.get_stand_alone_ip_list())
+
     def get_inventory_entries(self) -> List[InventoryEntry]:
         return self.items
 
@@ -134,12 +140,13 @@ class Inventory:
             pass
 
     def find_subnet(self, ip) -> list:
-        if ip.find("192.168."):
+        print("parsing: ", ip)
+        octets = ip.split('.')
+        if octets[0] == '192':
             return self.get_dev_ip_list()
-        elif ip.find("10.0."):
+        elif octets[0] == '10':
             return self.get_stand_alone_ip_list()
-        elif ip.find("131."):
+        elif octets[0] == '131':
             return self.get_nipr_ip_list()
         else:
-            print("unknown")
             return self.get_unknown_ip_list()

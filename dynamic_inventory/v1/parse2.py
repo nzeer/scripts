@@ -162,6 +162,7 @@ def write_inventory(hosts=[], inv_dir=""):
                 path = p.Path(inventory_path)
                 path.touch()
         print(inventory_out.get_inventory_entries())
+        print(inventory_out.print_ips())
 
         # for entry in inventory.list_inventory_entries:
         # os_dir = p.Path(inv_dir+"/"+ entry.)
