@@ -140,7 +140,6 @@ class Inventory:
             pass
 
     def find_subnet(self, ip) -> list:
-        print("parsing: ", ip)
         octets = ip.split('.')
         if octets[0] == '192':
             return self.get_dev_ip_list()
