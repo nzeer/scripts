@@ -5,7 +5,7 @@ from libhostinfo import HostInfo
 from libinventoryinfo import Inventory, InventoryEntry
 
 # print debug messages to the console at runtime
-debug = True
+debug = False
 
 """ =========================================================
 parse files in ./hosts and build inventories based off:
@@ -20,9 +20,12 @@ load host data into HostInfo instance
 
 Return Type: HostInfo
 ============================================================="""
+
+
 def load_host(file):
     current_host = HostInfo("", [], [], "", "")
-    if debug: print("reading file:", file)
+    if debug:
+        print("reading file:", file)
     try:
         path = p.Path(file)
         if not path.exists():
@@ -35,19 +38,24 @@ def load_host(file):
                     file,
                 ).readline()
             )
-            if debug: print("loading host: ", res)
+            if debug:
+                print("loading host: ", res)
             return HostInfo(res[0], res[1], res[2], res[2][0], res[2][1])
     except OSError as e:
         print(e.strerror)
     return current_host
+
 
 """ =========================================================
 Load all hosts in a given directory
 
 ReturnType: list of HostInfo objects
 ============================================================="""
+
+
 def load_hosts(directory):
-    if debug: print("Using directory: ", directory)
+    if debug:
+        print("Using directory: ", directory)
     loaded_hosts = []
     host = HostInfo("", [], [], "", "")
     try:
@@ -64,6 +72,7 @@ def load_hosts(directory):
         pass
     return loaded_hosts
 
+
 """ =========================================================
 Write out inventory files broken out by
   - Network (subnet)
@@ -72,13 +81,17 @@ TODO: create a world file
 TODO: variables per inventory
 TODO: Server groupings (custom config options)
 ============================================================="""
+
+
 def write_inventory(hosts=[], inv_dir=""):
-    if debug:print("Using directory: ", inv_dir)
+    if debug:
+        print("Using directory: ", inv_dir)
     inventory_out = Inventory(
         items=[],
         list_nipr=[],
         list_dev=[],
         list_stand_alone=[],
+        list_old_stand_alone=[],
         list_unknown=[],
         list_formatted_host_entries=[],
         dict_unknown_subnet={},
@@ -105,6 +118,7 @@ def write_inventory(hosts=[], inv_dir=""):
                 nipr_ip="",
                 dev_ip="",
                 stand_alone_ip="",
+                old_stand_alone_ip="",
                 unknown_subnet_ip="",
                 hostname="",
                 ip_list=[],
@@ -120,15 +134,18 @@ def write_inventory(hosts=[], inv_dir=""):
             inventory_out.get_inventory_entries().append(inventory_entry)
             # add ip to appropriate ip list
             inventory_out.add_ip(inventory_entry.get_ip_list())
-            if debug: print("inventory: ", inventory_out)
-            if debug: print("inventory entry: ", inventory_entry)
+            if debug:
+                print("inventory: ", inventory_out)
+            if debug:
+                print("inventory entry: ", inventory_entry)
             # cleanup and prepare for the next iteration
             host = None
             inventory_entry = None
-        
+
         # iterate through inventory entries
         for inv_entry in inventory_out.get_inventory_entries():
-            if debug: print("parsing inventory entry: ", inv_entry)
+            if debug:
+                print("parsing inventory entry: ", inv_entry)
             host = HostInfo(
                 name="",
                 ip_list=[],
@@ -136,48 +153,75 @@ def write_inventory(hosts=[], inv_dir=""):
                 os_distro_version_major="",
                 os_distro="",
             )
-            if debug: print("inventory obj: ", inv_entry)
+            if debug:
+                print("inventory obj: ", inv_entry)
             # create distro/release directory structure, returning path to distro/release inventory file
-            inv_path = create_directory_structure(inv_dir, inv_entry.get_distro(), inv_entry.get_release())
+            inv_path = create_directory_structure(
+                inv_dir, inv_entry.get_distro(), inv_entry.get_release()
+            )
 
             # ignore anything but stand alone ip's since we dual home everything
-            write_stand_alone(inv_path, inv_entry.get_host_name(), inv_entry.get_stand_alone_ip())
-            
-        if debug: print(inventory_out.get_inventory_entries())
-        if debug: print(inventory_out.print_ips())
+            write_stand_alone(
+                inv_path, inv_entry.get_host_name(), inv_entry.get_stand_alone_ip()
+            )
+
+        if debug:
+            print(inventory_out.get_inventory_entries())
+        if debug:
+            print(inventory_out.print_ips())
 
         # write ./inventories/inventory file, broken up across known subnets
-        #inventory_file = os.path.join(inv_dir, "inventory")
-        write_subnets(os.path.join(inv_dir, "inventory"), inventory_out.get_unknown_ip_list(), inventory_out.get_stand_alone_ip_list(), inventory_out.get_nipr_ip_list(), inventory_out.get_dev_ip_list())
+        # inventory_file = os.path.join(inv_dir, "inventory")
+        write_subnets(
+            os.path.join(inv_dir, "inventory"),
+            inventory_out.get_unknown_ip_list(),
+            inventory_out.get_stand_alone_ip_list(),
+            inventory_out.get_old_stand_alone_ip_list(),
+            inventory_out.get_nipr_ip_list(),
+            inventory_out.get_dev_ip_list(),
+        )
     except OSError as e:
         print("there was a problem")
 
-def write_subnets(inv_file, list_unknown, list_sa, list_nipr, list_dev):
+
+def write_subnets(inv_file, list_unknown, list_sa, list_old_sa, list_nipr, list_dev):
     # write out all hosts by subnet in top level inventory file
     with open(inv_file, "w") as f:
         if list_unknown:
-            if debug: print("unknown ips: ", list_unknown)
+            if debug:
+                print("unknown ips: ", list_unknown)
             f.write("\n[unknown]\n")
             for ip in list_unknown:
                 f.write("%s\n" % ip)
-        
+
         if list_nipr:
-            if debug: print("nipr ips: ", list_nipr)
+            if debug:
+                print("nipr ips: ", list_nipr)
             f.write("\n[nipr]\n")
             for ip in list_nipr:
                 f.write("%s\n" % ip)
-        
+
         if list_dev:
-            if debug: print("dev ips: ", list_dev)
+            if debug:
+                print("dev ips: ", list_dev)
             f.write("\n[dev]\n")
             for ip in list_dev:
                 f.write("%s\n" % ip)
 
         if list_sa:
-            if debug: print("standalone ips: ", list_sa)
+            if debug:
+                print("standalone ips: ", list_sa)
             f.write("\n[standalone]\n")
             for ip in list_sa:
                 f.write("%s\n" % ip)
+
+        if list_old_sa:
+            if debug:
+                print("old standalone ips: ", list_old_sa)
+            f.write("\n[old_standalone]\n")
+            for ip in list_old_sa:
+                f.write("%s\n" % ip)
+
 
 def create_directory_structure(inventory_directory, distro, release) -> str:
     os_path = os.path.join(inventory_directory, distro)
@@ -194,16 +238,20 @@ def create_directory_structure(inventory_directory, distro, release) -> str:
         path.touch()
     return inventory_path
 
+
 def write_stand_alone(inv_path, host_name, ip):
     if ip:
         file1 = open(inv_path, "a")  # append mode
         file1.write("\n[%s]\n" % host_name)
         file1.write("%s\n" % ip)
         file1.close()
-    
+
+
 """ =========================================================
 Define an entry point
 ============================================================="""
+
+
 def main():
     hosts_info_directory = "./hosts"
     inventory_directory = "./inventories"
