@@ -1,0 +1,44 @@
+# Import the os and subprocess modules
+import os
+import subprocess
+
+# Define a function to run the ps command and get the output
+def run_ps():
+    # Run the ps -ef command and capture the output
+    output = subprocess.run(["ps", "-ef |grep -i id=tcserver"], capture_output=True, text=True)
+    # Split the output by lines
+    lines = output.stdout.splitlines()
+    # Return the lines
+    return lines
+
+# Define a function to filter the lines by the elapsed time
+def filter_lines(lines):
+    # Initialize an empty list to store the filtered lines
+    filtered = []
+    # Loop through the lines
+    for line in lines:
+        # Split the line by whitespace
+        fields = line.split()
+        # Get the fifth field which is the elapsed time
+        etime = fields[4]
+        # Check if the elapsed time contains a dash which indicates days
+        if "-" in etime:
+            # Append the line to the filtered list
+            filtered.append(line)
+    # Return the filtered list
+    return filtered
+
+# Define a main function
+def main():
+    # Call the run_ps function and get the lines
+    lines = run_ps()
+    # Call the filter_lines function and get the filtered lines
+    filtered = filter_lines(lines)
+    # Print the filtered lines
+    for line in filtered:
+        print(line)
+
+# Check if the script is run as the main module
+if __name__ == "__main__":
+    # Call the main function
+    main()
