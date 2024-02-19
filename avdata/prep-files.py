@@ -1,4 +1,3 @@
-import tarfile
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
 from flask import config
@@ -50,10 +49,14 @@ def initial_directory_setup(directory_path: str) -> bool:
     bool_complete = False
     try:
         if os.path.exists(directory_path):
+            if DEBUG:
+                print("Deleting: ", directory_path)
             delete_directory(directory_path)
         
         os.makedirs(directory_path)
         if os.path.exists(directory_path):
+            if DEBUG:
+                print("Created: ", directory_path) 
             bool_complete = True
     except OSError as e:
         raise OSError("Error: %s : %s" % (directory_path, e.strerror))
@@ -87,13 +90,15 @@ def delete_directory(directory_path: str) -> bool:
     if is_system_directory(directory_path):
         if DEBUG:
             raise OSError("Error: %s : %s" % (directory_path, "System directory"))
-        else:
-            try:
-                shutil.rmtree(directory_path)
-                if not os.path.exists(directory_path):
-                    bool_complete = True
-            except OSError as e:
-                raise OSError("Error: %s : %s" % (directory_path, e.strerror))
+    else:
+        if DEBUG:
+            print("Not a system directory: ", directory_path)
+        try:
+            shutil.rmtree(directory_path)
+            if not os.path.exists(directory_path):
+                bool_complete = True
+        except OSError as e:
+            raise OSError("Error: %s : %s" % (directory_path, e.strerror))
     return bool_complete
 
 def find_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
@@ -131,20 +136,22 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
     latest_tarfile= None
     for tarfile in list_tarfiles:
         if not latest_tarfile:
-            if DEBUG:
-                print("First: ", tarfile)
             latest_tarfile = tarfile
+            if DEBUG:
+                print("Adding Latest tarfile: ", tarfile)
         else:
             if tarfile.split('-')[1] > latest_tarfile.split('-')[1]:
                 if DEBUG:
-                    print("Newer: ", tarfile)
-                    print("Older: ", latest_tarfile)
+                    print("Previous Latest tarfile: ", latest_tarfile)
+                    print("Adding Newer tarfile: ", tarfile)
                 latest_tarfile = tarfile
             else:
-                if DEBUG:
-                    print("Removing: ", tarfile)
-                os.remove(tarfile)
-                
+                try:
+                    if DEBUG:
+                        print("Removing older tarfile: ", tarfile)
+                    os.remove(os.path.join(config['cache_directory'], tarfile))
+                except Exception as e:
+                    pass                
     if DEBUG:
         print("Latest file: ", latest_tarfile)
     return latest_tarfile
@@ -185,12 +192,13 @@ def main():
     #get soup object for the url
     soup = get_soup(CONFIG['tar_files_url'])
     
-    # initialize directories
-    # delete the directory if it exists
-    # create the directory
+    # initialize directories:
+    #   delete the directory if it exists
+    #   create the directory
     for k,v in CONFIG.items():
-        if not initial_directory_setup(v):
-            raise OSError("Error: %s : %s" % (v, "Directory creation failed"))
+        if k == 'save_directory' or k == 'cache_directory':
+            if not initial_directory_setup(v):
+                raise OSError("Error: %s : %s" % (v, "Directory creation failed"))
         
     # find tar files
     list_tarfiles= find_tar_files(soup, CONFIG['cache_directory'], CONFIG['tar_files_url']) 
