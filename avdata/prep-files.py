@@ -1,14 +1,18 @@
+import tarfile
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
+from flask import config
 import requests
 import os
 import shutil
 
 DEBUG = True
 
-url = "https://update.nai.com/products/datfiles/4.x/"
-save_directory = "./dat_file"
-cache_directory = "./.cache"
+CONFIG = {
+    'save_directory': "./dat_file",
+    'cache_directory': "./.cache",
+    'tar_files_url': "https://update.nai.com/products/datfiles/4.x/",
+}
 
 GLOBAL_LIST_SYSTEM_DIRECTORIES = [
     "/",
@@ -32,6 +36,28 @@ GLOBAL_LIST_SYSTEM_DIRECTORIES = [
     "/usr",
     "/var",
 ]
+
+def initial_directory_setup(directory_path: str) -> bool:
+    """
+    Create a directory, delete if pre-existing.
+
+    Args:
+        directory_path (str): The path of the directory to create.
+
+    Returns:
+        bool: True if the directory is created, False otherwise.
+    """
+    bool_complete = False
+    try:
+        if os.path.exists(directory_path):
+            delete_directory(directory_path)
+        
+        os.makedirs(directory_path)
+        if os.path.exists(directory_path):
+            bool_complete = True
+    except OSError as e:
+        raise OSError("Error: %s : %s" % (directory_path, e.strerror))
+    return bool_complete
 
 def is_system_directory(directory_path: str) -> bool:
     """
@@ -70,56 +96,126 @@ def delete_directory(directory_path: str) -> bool:
                 raise OSError("Error: %s : %s" % (directory_path, e.strerror))
     return bool_complete
 
-def main():
-    r  = requests.get(url)
-    data = r.text
-    soup = BeautifulSoup(data, features="lxml")
+def find_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
+    """
+    Find tar files in the HTML page.
+
+    Args:
+        soup (BeautifulSoup): The HTML page.
+
+    Returns:
+        list: A list of tar files.
+    """
     files = []
-
-    if os.path.exists(save_directory):
-        delete_directory(save_directory)
-    else:
-        os.makedirs(save_directory)
-        
-    if os.path.exists(cache_directory):
-        delete_directory(cache_directory)
-    else:
-        os.makedirs(cache_directory)
-
     for link in soup.find_all('a'):
         file  = link.get('href')
         if DEBUG:
             print(file)
         if file.endswith(".tar"):
-            files.append("%s/%s" % (cache_directory, file))
+            files.append("%s/%s" % (downloads_directory, file))
             if DEBUG:
                 print("found tar: ", file)
-            urlretrieve(url + file, cache_directory + "/" + file)
-            
-    latest = "" 
-    for item in files:
-        if not latest:
+            urlretrieve(url + file, downloads_directory + "/" + file)
+    return files
+
+def find_latest_tar_file(list_tarfiles: list) -> str:
+    """
+    Find the latest tar file from a list of tar files.
+
+    Args:
+        list_tarfiles (list): A list of tar files.
+
+    Returns:
+        str: The latest tar file.
+    """
+    latest_tarfile= None
+    for tarfile in list_tarfiles:
+        if not latest_tarfile:
             if DEBUG:
-                print("First: ", item)
-            latest = item
+                print("First: ", tarfile)
+            latest_tarfile = tarfile
         else:
-            if item.split('-')[1] > latest.split('-')[1]:
+            if tarfile.split('-')[1] > latest_tarfile.split('-')[1]:
                 if DEBUG:
-                    print("Newer: ", item)
-                    print("Older: ", latest)
-                latest = item
+                    print("Newer: ", tarfile)
+                    print("Older: ", latest_tarfile)
+                latest_tarfile = tarfile
             else:
                 if DEBUG:
-                    print("Removing: ", item)
-                os.remove(item)
+                    print("Removing: ", tarfile)
+                os.remove(tarfile)
                 
     if DEBUG:
-        print("Latest file: ", latest)
+        print("Latest file: ", latest_tarfile)
+    return latest_tarfile
 
-    shutil.move(latest, "%s/%s" % (save_directory, os.path.basename(latest)))
+def get_tarfile_basename(tarfile: str) -> str:
+    """
+    Get the basename of a tar file.
 
+    Args:
+        tarfile (str): The path of the tar file.
+
+    Returns:
+        str: The basename of the tar file.
+    """
+    return os.path.basename(tarfile)
+
+def get_soup(url: str) -> BeautifulSoup:
+    """
+    Get the HTML page from a URL.
+
+    Args:
+        url (str): The URL of the HTML page.
+
+    Returns:
+        BeautifulSoup: The HTML page.
+    """
+    r  = requests.get(url)
+    data = r.text
+    return BeautifulSoup(data, features="lxml")
+
+def main():
+    """
+    entry point of the program.
+    It performs the necessary steps to download and process tar files in preparation of deployment.
+    """
+    latest_tarfile= None
+    
+    #get soup object for the url
+    soup = get_soup(CONFIG['tar_files_url'])
+    
+    # initialize directories
+    # delete the directory if it exists
+    # create the directory
+    for k,v in CONFIG.items():
+        if not initial_directory_setup(v):
+            raise OSError("Error: %s : %s" % (v, "Directory creation failed"))
+        
+    # find tar files
+    list_tarfiles= find_tar_files(soup, CONFIG['cache_directory'], CONFIG['tar_files_url']) 
+    
+    # find the latest tar file
+    latest_tarfile= find_latest_tar_file(list_tarfiles)
+    
+    if DEBUG:
+        print("Latest file: ", latest_tarfile)
+    
+    try:
+        # move the latest tar file to the save directory
+        tarfile_basename = get_tarfile_basename(latest_tarfile)
+        shutil.move(latest_tarfile, "%s/%s" % (CONFIG['save_directory'], tarfile_basename))
+        if DEBUG:
+            print("Moved: ", latest_tarfile)
+    except Exception as e:
+        if DEBUG:
+            print("Error: %s : %s" % (latest_tarfile, e.strerror))
+        raise Exception("Error: %s : %s" % (latest_tarfile, e.strerror))
 
 # Check if the script is run as the main module
 if __name__ == "__main__":
     # Call the main function
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(str(e))
