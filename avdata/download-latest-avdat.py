@@ -35,10 +35,10 @@ CONFIG = {
     'tar_files_url': "https://update.nai.com/products/datfiles/4.x/",
 }
 
-GLOBAL_ADDITIONAL_CMDS = [
-    "/bin/bash ./test.sh 1234",
-    "/bin/bash ./test.sh 23456",
-]
+GLOBAL_ADDITIONAL_CMDS = {
+    'avdat_prep_playbook': "/bin/bash ./test.sh 1234",
+    'avdat_playbook_execute': "/bin/bash ./test.sh 23456",
+}
 
 GLOBAL_LIST_SYSTEM_DIRECTORIES = [
     "/",
@@ -354,13 +354,13 @@ def run_subprocess(cmd: str) -> list:
     lines = output.decode().splitlines()
     return lines
 
-def run_additional_cmds(list_cmds: list = []):
+def run_additional_cmds(cmds: dict = {}):
     """
     Run additional commands.
     """
-    for cmd in list_cmds:
+    for cmd_name, cmd in cmds.items():
         if DEBUG:
-            print("Running: ", cmd)
+            print("Running: %s: %s" % (cmd_name, cmd))
         call_back_data = run_subprocess(cmd)
         if DEBUG:
             print("\n\t\tCallback: ", call_back_data)
