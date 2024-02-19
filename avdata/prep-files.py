@@ -114,13 +114,15 @@ def find_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
     files = []
     for link in soup.find_all('a'):
         file  = link.get('href')
-        if DEBUG:
-            print(file)
         if file.endswith(".tar"):
-            files.append("%s/%s" % (downloads_directory, file))
+            tarfile_to_download = "%s/%s" % (downloads_directory, file)
+            files.append(tarfile_to_download)
             if DEBUG:
-                print("found tar: ", file)
-            urlretrieve(url + file, downloads_directory + "/" + file)
+                print("Downloading tarfile: ", url + file)
+            
+            urlretrieve(url + file, tarfile_to_download)
+            if DEBUG:
+                print("Downloaded tarfile: ", tarfile_to_download)
     return files
 
 def find_latest_tar_file(list_tarfiles: list) -> str:
@@ -134,6 +136,7 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
         str: The latest tar file.
     """
     latest_tarfile= None
+    previous_tarfile= None
     for tarfile in list_tarfiles:
         if not latest_tarfile:
             latest_tarfile = tarfile
@@ -141,17 +144,18 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
                 print("Adding Latest tarfile: ", tarfile)
         else:
             if tarfile.split('-')[1] > latest_tarfile.split('-')[1]:
-                if DEBUG:
-                    print("Previous Latest tarfile: ", latest_tarfile)
-                    print("Adding Newer tarfile: ", tarfile)
+                previous_tarfile = latest_tarfile
                 latest_tarfile = tarfile
-            else:
-                try:
-                    if DEBUG:
-                        print("Removing older tarfile: ", tarfile)
-                    os.remove(os.path.join(config['cache_directory'], tarfile))
-                except Exception as e:
-                    pass                
+                if DEBUG:
+                    print("Added Newer tarfile: ", latest_tarfile)
+            #else:
+            try:
+                if DEBUG:
+                    print("Removing older tarfile: ", previous_tarfile)
+                if previous_tarfile:
+                    os.remove(previous_tarfile)
+            except Exception as e:
+                pass                
     if DEBUG:
         print("Latest file: ", latest_tarfile)
     return latest_tarfile
@@ -212,13 +216,14 @@ def main():
     try:
         # move the latest tar file to the save directory
         tarfile_basename = get_tarfile_basename(latest_tarfile)
-        shutil.move(latest_tarfile, "%s/%s" % (CONFIG['save_directory'], tarfile_basename))
+        final_avdat_tarfile = "%s/%s" % (CONFIG['save_directory'], tarfile_basename)
+        shutil.move(latest_tarfile, final_avdat_tarfile)
         if DEBUG:
-            print("Moved: ", latest_tarfile)
+            print("Latest AVDAT tarfile saved: ", final_avdat_tarfile)
     except Exception as e:
         if DEBUG:
-            print("Error: %s : %s" % (latest_tarfile, e.strerror))
-        raise Exception("Error: %s : %s" % (latest_tarfile, e.strerror))
+            print("Error: %s : %s" % (final_avdat_tarfile, e))
+        raise Exception("Error: %s : %s" % (final_avdat_tarfile, e))
 
 # Check if the script is run as the main module
 if __name__ == "__main__":
