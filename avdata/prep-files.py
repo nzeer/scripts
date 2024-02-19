@@ -1,3 +1,21 @@
+'''================================================================================================
+Written by: Robert Jackson
+Date: 2024-02-18
+
+This script is used to download and process tar files in preparation of deployment.
+config['save_directory'] is the directory where the latest tar file is saved.
+config['cache_directory'] is the directory where the tar files are downloaded.
+config['tar_files_url'] is the URL of the tar files.
+
+The script performs the following steps:
+1. Initialize the directories.
+2. Find tar files.
+3. Find the latest tar file.
+4. Move the latest tar file to the save directory.
+
+Set DEBUG = True to print debug information.
+================================================================================================'''
+
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
 from flask import config
