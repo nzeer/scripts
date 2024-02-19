@@ -16,17 +16,25 @@ The script performs the following steps:
 Set DEBUG = True to print debug information.
 ================================================================================================'''
 
+from ast import Raise, parse
+from json import load
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
+from flask import config
+from more_itertools import last
 import requests
 import os
 import shutil
+from datetime import datetime
 
 DEBUG = True
 
 CONFIG = {
     'save_directory': "./dat_file",
     'cache_directory': "./.cache",
+    'tmp_directory': "./.tmp",
+    'avdat_version_file': "latest_avdat.txt",
+    'last_avdat_version': '0000',
     'tar_files_url': "https://update.nai.com/products/datfiles/4.x/",
 }
 
@@ -53,7 +61,99 @@ GLOBAL_LIST_SYSTEM_DIRECTORIES = [
     "/var",
 ]
 
-def initial_directory_setup(directory_path: str) -> bool:
+def get_timestamp() -> str:
+    """
+    Returns the current timestamp in ISO 8601 format.
+
+    :return: The current timestamp as a string.
+    """
+    return datetime.now().isoformat(sep=" ")
+
+def load_avdat_version() -> str:
+    """
+    Load the AVDAT version.
+
+    Returns:
+        str: The AVDAT version.
+    """
+    version_file_name = os.path.join(CONFIG['tmp_directory'], CONFIG['avdat_version_file'])
+    version = "0000"
+    if DEBUG:    
+        print("Looking for: ", version_file_name)
+    if not os.path.exists(version_file_name):
+        Raise("Error: %s : %s" % (version_file_name, "File not found"))
+    
+        version = load_file(version_file_name)
+        CONFIG['last_avdat_version'] = version
+        return version
+
+def load_file(file_target: str, *, file_mode: str = "r") -> str:
+    """
+    Load content from a file.
+
+    Args:
+        file_target (str): The path of the file to load from.
+        file_mode (str, optional): The mode to open the file in. Defaults to "r" (read mode).
+
+    Returns:
+        str: The content of the file.
+    """
+    if not os.path.exists(file_target):
+        if DEBUG:
+            print("[%s] File not found: %s" % (get_timestamp(), file_target))
+        return None
+    if DEBUG:
+        print("[%s] Found file: %s" % (get_timestamp(), file_target))
+    with open(file_target, file_mode) as open_file_target:  # read mode
+        content = open_file_target.read()
+        if DEBUG:
+            print("[%s] loaded %s" % (get_timestamp(), file_target))
+    return content
+
+def update_avdat_version(version: str="0000") -> bool:
+    """
+    Write the AVDAT version to a file.
+
+    Args:
+        version (str): The AVDAT version.
+    Returns:
+        bool: True if the version is written to the file, False otherwise.
+    """
+    version_file_name = os.path.join(CONFIG['tmp_directory'], CONFIG['avdat_version_file'])
+    if not os.path.exists(version_file_name):
+        if not os.path.isdir(CONFIG['tmp_directory']):
+            os.makedirs(CONFIG['tmp_directory'])
+            if DEBUG:
+                print("Created: ", CONFIG['tmp_directory'])
+        if not version:
+            version = "0000"
+    CONFIG['last_avdat_version'] = version
+    return write_file(version_file_name, content_to_write=version, file_mode="w")
+
+def write_file(file_target: str, *, file_mode: str = "a", content_to_write: str = "") -> bool:
+    """
+    Write content to a file.
+
+    Args:
+        file_target (str): The path of the file to write to.
+        file_mode (str, optional): The mode to open the file in. Defaults to "a" (append mode).
+        content_to_write (str, optional): The content to write to the file. Defaults to an empty string.
+    """
+    wrote_file = False
+    if file_target:
+        if DEBUG:
+            print("[%s] Found file: %s" % (get_timestamp(), file_target))
+        with open(file_target, file_mode) as open_file_target:  # append mode
+            open_file_target.write(content_to_write)
+            wrote_file = True
+        if DEBUG:
+            print("[%s] updated %s" % (get_timestamp(), file_target))
+    else:
+        if DEBUG:
+            print("[%s] File not found: %s" % (get_timestamp(), file_target))
+    return wrote_file
+
+def initial_directory_setup(directory_path: str, initialize_directory: bool = True) -> bool:
     """
     Create a directory, delete if pre-existing.
 
@@ -67,14 +167,19 @@ def initial_directory_setup(directory_path: str) -> bool:
     try:
         if os.path.exists(directory_path):
             if DEBUG:
-                print("Deleting: ", directory_path)
-            delete_directory(directory_path)
-        
-        os.makedirs(directory_path)
-        if os.path.exists(directory_path):
+                print("Found existing : ", directory_path)
+            if initialize_directory:
+                if delete_directory(directory_path):
+                    if DEBUG:
+                        print("Deleted: ", directory_path)
+                    os.makedirs(directory_path)
+                    if DEBUG:
+                        print("Created: ", directory_path)
+        else:
+            os.makedirs(directory_path)
             if DEBUG:
-                print("Created: ", directory_path) 
-            bool_complete = True
+                print("Created: ", directory_path)
+        bool_complete = os.path.exists(directory_path)
     except OSError as e:
         raise OSError("Error: %s : %s" % (directory_path, e.strerror))
     return bool_complete
@@ -160,9 +265,13 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
             if DEBUG:
                 print("Adding Latest tarfile: ", tarfile)
         else:
-            if tarfile.split('-')[1] > latest_tarfile.split('-')[1]:
+            current_version = latest_tarfile.split('-')[1]
+            proposed_version = tarfile.split('-')[1]
+            if proposed_version > current_version:
                 previous_tarfile = latest_tarfile
                 latest_tarfile = tarfile
+                version_file_name = os.path.join(CONFIG['tmp_directory'], CONFIG['avdat_version_file']).split('.')[0]
+                write_file(version_file_name, content_to_write=proposed_version, file_mode="w")
                 if DEBUG:
                     print("Added Newer tarfile: ", latest_tarfile)
             try:
@@ -202,35 +311,72 @@ def get_soup(url: str) -> BeautifulSoup:
     data = r.text
     return BeautifulSoup(data, features="lxml")
 
+def load_config() -> dict:
+    """
+    Load the configuration.
+
+    Returns:
+        dict: The configuration.
+    """
+    
+    parse_config()
+    
+    return CONFIG
+
+def parse_config():
+    for k,v in CONFIG.items():
+        if k == 'save_directory' or k == 'cache_directory' or k == 'tmp_directory':
+            if k == 'tmp_directory':
+                # see if theres a tmp directory
+                # if not create it
+                if not os.path.exists(v):
+                    if update_avdat_version():
+                        print("Created: ", v)
+                if not initial_directory_setup(v, initialize_directory=False):
+                    raise OSError("Error: %s : %s" % (v, "Something went wrong with tmp directory creation")) 
+            else:
+                if not initial_directory_setup(v):
+                    raise OSError("Error: %s : %s" % (v, "Directory creation failed"))
+
 def main():
     """
     entry point of the program.
     It performs the necessary steps to download and process tar files in preparation of deployment.
     """
+    load_config()
+    
     latest_tarfile= None
+    
+    # load the last avdat version
+    last_version_downloaded = CONFIG['last_avdat_version']
     
     #get soup object for the url
     soup = get_soup(CONFIG['tar_files_url'])
+    if DEBUG:
+        print("Using : ", CONFIG['tar_files_url'])
     
+    if DEBUG:
+        print("Last avdat version downloaded: ", last_version_downloaded)
+        
     # initialize directories:
     #   delete the directory if it exists
     #   create the directory
-    for k,v in CONFIG.items():
-        if k == 'save_directory' or k == 'cache_directory':
-            if not initial_directory_setup(v):
-                raise OSError("Error: %s : %s" % (v, "Directory creation failed"))
-        
     # find tar files
     list_tarfiles= find_tar_files(soup, CONFIG['cache_directory'], CONFIG['tar_files_url']) 
     
     # find the latest tar file
     latest_tarfile= find_latest_tar_file(list_tarfiles)
+    last_version_downloaded = latest_tarfile.split('-')[1].split('.')[0]
     
+    if DEBUG:
+        print("last avdat version: ", last_version_downloaded)   
     try:
         # move the latest tar file to the save directory
         tarfile_basename = get_tarfile_basename(latest_tarfile)
         final_avdat_tarfile = "%s/%s" % (CONFIG['save_directory'], tarfile_basename)
         shutil.move(latest_tarfile, final_avdat_tarfile)
+        print("HERE BITCH: ", final_avdat_tarfile.split('-')[1].split('.')[0])
+        update_avdat_version(final_avdat_tarfile.split('-')[1].split('.')[0])
         if DEBUG:
             print("Latest AVDAT tarfile saved: ", final_avdat_tarfile)
     except Exception as e:
