@@ -18,7 +18,6 @@ Set DEBUG = True to print debug information.
 
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
-from flask import config
 import requests
 import os
 import shutil
@@ -166,7 +165,6 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
                 latest_tarfile = tarfile
                 if DEBUG:
                     print("Added Newer tarfile: ", latest_tarfile)
-            #else:
             try:
                 if DEBUG:
                     print("Removing older tarfile: ", previous_tarfile)
@@ -227,9 +225,6 @@ def main():
     
     # find the latest tar file
     latest_tarfile= find_latest_tar_file(list_tarfiles)
-    
-    if DEBUG:
-        print("Latest file: ", latest_tarfile)
     
     try:
         # move the latest tar file to the save directory
