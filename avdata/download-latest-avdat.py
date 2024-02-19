@@ -26,7 +26,7 @@ import subprocess
 
 DEBUG = True
 
-CONFIG = {
+GLOBAL_CONFIG = {
     'save_directory': "./dat_file",
     'cache_directory': "./.cache",
     'tmp_directory': "./.tmp",
@@ -78,15 +78,15 @@ def load_avdat_version() -> str:
     Returns:
         str: The AVDAT version.
     """
-    version_file_name = os.path.join(CONFIG['tmp_directory'], CONFIG['avdat_version_file'])
+    version_file_name = os.path.join(GLOBAL_CONFIG['tmp_directory'], GLOBAL_CONFIG['avdat_version_file'])
     version = "0000"
     if DEBUG:    
-        print("Looking for: ", version_file_name)
+        print("[%s] Looking for: %s" % (get_timestamp(), version_file_name))
     if not os.path.exists(version_file_name):
-        raise Exception("Error: %s : %s" % (version_file_name, "File not found"))
+        raise Exception("[%s] Error: %s : %s" % (get_timestamp(), version_file_name, "File not found"))
     
     version = load_file(version_file_name)
-    CONFIG['last_avdat_version'] = version
+    GLOBAL_CONFIG['last_avdat_version'] = version
     return version
 
 def load_file(file_target: str, *, file_mode: str = "r") -> str:
@@ -121,15 +121,15 @@ def update_avdat_version(version: str="0000") -> bool:
     Returns:
         bool: True if the version is written to the file, False otherwise.
     """
-    version_file_name = os.path.join(CONFIG['tmp_directory'], CONFIG['avdat_version_file'])
+    version_file_name = os.path.join(GLOBAL_CONFIG['tmp_directory'], GLOBAL_CONFIG['avdat_version_file'])
     if not os.path.exists(version_file_name):
-        if not os.path.isdir(CONFIG['tmp_directory']):
-            os.makedirs(CONFIG['tmp_directory'])
+        if not os.path.isdir(GLOBAL_CONFIG['tmp_directory']):
+            os.makedirs(GLOBAL_CONFIG['tmp_directory'])
             if DEBUG:
-                print("Created: ", CONFIG['tmp_directory'])
+                print("[%s] Created: %s" % (get_timestamp(), GLOBAL_CONFIG['tmp_directory']))
         if not version:
             version = "0000"
-    CONFIG['last_avdat_version'] = version
+    GLOBAL_CONFIG['last_avdat_version'] = version
     return write_file(version_file_name, content_to_write=version, file_mode="w")
 
 def write_file(file_target: str, *, file_mode: str = "a", content_to_write: str = "") -> bool:
@@ -169,21 +169,21 @@ def initial_directory_setup(directory_path: str, initialize_directory: bool = Tr
     try:
         if os.path.exists(directory_path):
             if DEBUG:
-                print("Found existing : ", directory_path)
+                print("[%s] Found existing : %s" % (get_timestamp(), directory_path))
             if initialize_directory:
                 if delete_directory(directory_path):
                     if DEBUG:
-                        print("Deleted: ", directory_path)
+                        print("[%s] Deleted: %s" % (get_timestamp(), directory_path))
                     os.makedirs(directory_path)
                     if DEBUG:
-                        print("Created: ", directory_path)
+                        print("[%s] Created: %s" % (get_timestamp(), directory_path))
         else:
             os.makedirs(directory_path)
             if DEBUG:
-                print("Created: ", directory_path)
+                print("[%s] Created: %s" % (get_timestamp(), directory_path))
         bool_complete = os.path.exists(directory_path)
     except OSError as e:
-        raise OSError("Error: %s : %s" % (directory_path, e.strerror))
+        raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, e.strerror))
     return bool_complete
 
 def is_system_directory(directory_path: str) -> bool:
@@ -213,16 +213,16 @@ def delete_directory(directory_path: str) -> bool:
     # guard rails so we dont delete system directories
     if is_system_directory(directory_path):
         if DEBUG:
-            raise OSError("Error: %s : %s" % (directory_path, "System directory"))
+            raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, "System directory"))
     else:
         if DEBUG:
-            print("Not a system directory: ", directory_path)
+            print("[%s] Not a system directory: %s" % (get_timestamp(), directory_path))
         try:
             shutil.rmtree(directory_path)
             if not os.path.exists(directory_path):
                 bool_complete = True
         except OSError as e:
-            raise OSError("Error: %s : %s" % (directory_path, e.strerror))
+            raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, e.strerror))
     return bool_complete
 
 def find_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
@@ -239,16 +239,18 @@ def find_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
     for link in soup.find_all('a'):
         file  = link.get('href')
         if file.endswith(".tar"):
-            if file.split('-')[1].split('.')[0] <= CONFIG['last_avdat_version']:
+            if file.split('-')[1].split('.')[0] <= GLOBAL_CONFIG['last_avdat_version']:
+                if DEBUG:
+                    print("[%s] AVDAT already downloaded" % get_timestamp())
                 return files
             tarfile_to_download = "%s/%s" % (downloads_directory, file)
             files.append(tarfile_to_download)
             if DEBUG:
-                print("Downloading tarfile: ", url + file)
+                print("[%s] Downloading tarfile: %s" % (get_timestamp(), url + file))
             
             urlretrieve(url + file, tarfile_to_download)
             if DEBUG:
-                print("Downloaded tarfile: ", tarfile_to_download)
+                print("[%s] Downloaded tarfile: %s" % (get_timestamp(), tarfile_to_download))
     return files
 
 def find_latest_tar_file(list_tarfiles: list) -> str:
@@ -267,7 +269,7 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
         if not latest_tarfile:
             latest_tarfile = tarfile
             if DEBUG:
-                print("Adding Latest tarfile: ", tarfile)
+                print("[%s] Adding Latest tarfile: %s" % (get_timestamp(), tarfile))
         else:
             current_version = latest_tarfile.split('-')[1]
             proposed_version = tarfile.split('-')[1]
@@ -276,16 +278,16 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
                 latest_tarfile = tarfile
                 update_avdat_version(proposed_version)
                 if DEBUG:
-                    print("Added Newer tarfile: ", latest_tarfile)
+                    print("[%s] Added Newer tarfile: %s" % (get_timestamp(), latest_tarfile))
             try:
                 if DEBUG:
-                    print("Removing older tarfile: ", previous_tarfile)
+                    print("[%s] Removing older tarfile: %s" % (get_timestamp(), previous_tarfile))
                 if previous_tarfile:
                     os.remove(previous_tarfile)
             except Exception as e:
                 pass                
     if DEBUG:
-        print("Latest file: ", latest_tarfile)
+        print("[%s] Latest file: %s" % (get_timestamp(), latest_tarfile))
     return latest_tarfile
 
 def get_tarfile_basename(tarfile: str) -> str:
@@ -324,23 +326,23 @@ def load_config() -> dict:
     
     parse_config()
     
-    return CONFIG
+    return GLOBAL_CONFIG
 
 def parse_config():
-    for k,v in CONFIG.items():
+    for k,v in GLOBAL_CONFIG.items():
         if k == 'save_directory' or k == 'cache_directory' or k == 'tmp_directory':
             if k == 'tmp_directory':
                 # see if theres a tmp directory
                 # if not create it
                 if not os.path.exists(v):
                     if update_avdat_version():
-                        print("Created: ", v)
+                        print("[%s] Created: %s" % (get_timestamp(), v))
                 if not initial_directory_setup(v, initialize_directory=False):
-                    raise OSError("Error: %s : %s" % (v, "Something went wrong with tmp directory creation")) 
+                    raise OSError("[%s] Error: %s : %s" % (get_timestamp(), v, "Something went wrong with tmp directory creation")) 
                 
             else:
                 if not initial_directory_setup(v):
-                    raise OSError("Error: %s : %s" % (v, "Directory creation failed"))
+                    raise OSError("[%s] Error: %s : %s" % (get_timestamp(), v, "Directory creation failed"))
                 
 def run_subprocess(cmd: str) -> list:
     """
@@ -360,10 +362,10 @@ def run_additional_cmds(cmds: dict = {}):
     """
     for cmd_name, cmd in cmds.items():
         if DEBUG:
-            print("Running: %s: %s" % (cmd_name, cmd))
+            print("[%s] Running: \n\t[ %s ]:\t%s" % (get_timestamp(), cmd_name, cmd))
         call_back_data = run_subprocess(cmd)
         if DEBUG:
-            print("\n\t\tCallback: ", call_back_data)
+            print("\n\t\t[%s] Callback:\t%s\n" % (get_timestamp(), call_back_data))
 
 def main():
     """
@@ -378,22 +380,22 @@ def main():
     last_version_downloaded = load_avdat_version()
     
     #get soup object for the url
-    soup = get_soup(CONFIG['tar_files_url'])
+    soup = get_soup(GLOBAL_CONFIG['tar_files_url'])
     
     if DEBUG:
-        print("Using : ", CONFIG['tar_files_url'])
+        print("[%s] Using : %s" % (get_timestamp(), GLOBAL_CONFIG['tar_files_url']))
     
     if DEBUG:
-        print("Last avdat version downloaded: ", CONFIG['last_avdat_version'])
+        print("[%s] Last avdat version downloaded: %s" % (get_timestamp(), GLOBAL_CONFIG['last_avdat_version']))
         
     # initialize directories:
     #   delete the directory if it exists
     #   create the directory
     # find tar files
-    list_tarfiles= find_tar_files(soup, CONFIG['cache_directory'], CONFIG['tar_files_url']) 
+    list_tarfiles= find_tar_files(soup, GLOBAL_CONFIG['cache_directory'], GLOBAL_CONFIG['tar_files_url']) 
     if not list_tarfiles:
         if DEBUG:
-            print("No new avdat version found")
+            print("[%s] No new avdat version found" % get_timestamp())
         return
     
     # find the latest tar file
@@ -401,23 +403,23 @@ def main():
     last_version_downloaded = latest_tarfile.split('-')[1].split('.')[0]
     
     if DEBUG:
-        print("last avdat version: ", last_version_downloaded)   
+        print("[%s] last avdat version: %s" % (get_timestamp(), last_version_downloaded))  
     try:
         # move the latest tar file to the save directory
         tarfile_basename = get_tarfile_basename(latest_tarfile)
-        final_avdat_tarfile = "%s/%s" % (CONFIG['save_directory'], tarfile_basename)
+        final_avdat_tarfile = "%s/%s" % (GLOBAL_CONFIG['save_directory'], tarfile_basename)
         shutil.move(latest_tarfile, final_avdat_tarfile)
         update_avdat_version(final_avdat_tarfile.split('-')[1].split('.')[0])
         if DEBUG:
-            print("Latest AVDAT tarfile saved: ", final_avdat_tarfile)
-            print("Prepping file for deployment: ")
+            print("[%s] Latest AVDAT tarfile saved: %s" % (get_timestamp(), final_avdat_tarfile))
+            print("\n[%s] Prepping file for deployment: \n" % get_timestamp())
         run_additional_cmds(GLOBAL_ADDITIONAL_CMDS)
         if DEBUG:
-            print("Completed.")
+            print("[%s] Completed." % get_timestamp())
     except Exception as e:
         if DEBUG:
-            print("Error: %s : %s" % (final_avdat_tarfile, e))
-        raise Exception("Error: %s : %s" % (final_avdat_tarfile, e))
+            print("[%s] Error: %s : %s" % (get_timestamp(), final_avdat_tarfile, e))
+        raise Exception("[%s] Error: %s : %s" % (get_timestamp(), final_avdat_tarfile, e))
 
 # Check if the script is run as the main module
 if __name__ == "__main__":
