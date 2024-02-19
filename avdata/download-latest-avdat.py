@@ -83,9 +83,9 @@ def load_avdat_version() -> str:
     if not os.path.exists(version_file_name):
         Raise("Error: %s : %s" % (version_file_name, "File not found"))
     
-        version = load_file(version_file_name)
-        CONFIG['last_avdat_version'] = version
-        return version
+    version = load_file(version_file_name)
+    CONFIG['last_avdat_version'] = version
+    return version
 
 def load_file(file_target: str, *, file_mode: str = "r") -> str:
     """
@@ -237,6 +237,8 @@ def find_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
     for link in soup.find_all('a'):
         file  = link.get('href')
         if file.endswith(".tar"):
+            if file.split('-')[1].split('.')[0] <= CONFIG['last_avdat_version']:
+                return files
             tarfile_to_download = "%s/%s" % (downloads_directory, file)
             files.append(tarfile_to_download)
             if DEBUG:
@@ -270,8 +272,7 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
             if proposed_version > current_version:
                 previous_tarfile = latest_tarfile
                 latest_tarfile = tarfile
-                version_file_name = os.path.join(CONFIG['tmp_directory'], CONFIG['avdat_version_file']).split('.')[0]
-                write_file(version_file_name, content_to_write=proposed_version, file_mode="w")
+                update_avdat_version(proposed_version)
                 if DEBUG:
                     print("Added Newer tarfile: ", latest_tarfile)
             try:
@@ -334,6 +335,7 @@ def parse_config():
                         print("Created: ", v)
                 if not initial_directory_setup(v, initialize_directory=False):
                     raise OSError("Error: %s : %s" % (v, "Something went wrong with tmp directory creation")) 
+                
             else:
                 if not initial_directory_setup(v):
                     raise OSError("Error: %s : %s" % (v, "Directory creation failed"))
@@ -348,7 +350,7 @@ def main():
     latest_tarfile= None
     
     # load the last avdat version
-    last_version_downloaded = CONFIG['last_avdat_version']
+    last_version_downloaded = load_avdat_version()
     
     #get soup object for the url
     soup = get_soup(CONFIG['tar_files_url'])
@@ -356,13 +358,17 @@ def main():
         print("Using : ", CONFIG['tar_files_url'])
     
     if DEBUG:
-        print("Last avdat version downloaded: ", last_version_downloaded)
+        print("Last avdat version downloaded: ", CONFIG['last_avdat_version'])
         
     # initialize directories:
     #   delete the directory if it exists
     #   create the directory
     # find tar files
     list_tarfiles= find_tar_files(soup, CONFIG['cache_directory'], CONFIG['tar_files_url']) 
+    if not list_tarfiles:
+        if DEBUG:
+            print("No new avdat version found")
+        return
     
     # find the latest tar file
     latest_tarfile= find_latest_tar_file(list_tarfiles)
@@ -375,7 +381,6 @@ def main():
         tarfile_basename = get_tarfile_basename(latest_tarfile)
         final_avdat_tarfile = "%s/%s" % (CONFIG['save_directory'], tarfile_basename)
         shutil.move(latest_tarfile, final_avdat_tarfile)
-        print("HERE BITCH: ", final_avdat_tarfile.split('-')[1].split('.')[0])
         update_avdat_version(final_avdat_tarfile.split('-')[1].split('.')[0])
         if DEBUG:
             print("Latest AVDAT tarfile saved: ", final_avdat_tarfile)
