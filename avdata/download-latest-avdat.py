@@ -225,7 +225,7 @@ def delete_directory(directory_path: str) -> bool:
             raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, e.strerror))
     return bool_complete
 
-def find_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
+def download_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
     """
     Find tar files in the HTML page.
 
@@ -329,6 +329,12 @@ def load_config() -> dict:
     return GLOBAL_CONFIG
 
 def parse_config():
+    """
+    Parses the global configuration and performs directory setup based on the configuration values.
+
+    Raises:
+        OSError: If directory creation fails.
+    """
     for k,v in GLOBAL_CONFIG.items():
         if k == 'cache_directory' or k == 'tmp_directory':
             if k == 'tmp_directory':
@@ -351,7 +357,6 @@ def run_subprocess(cmd: str) -> list:
     Returns:
         list: The output of the command as a list of lines.
     """
-    # cmd = "ps -eo user,pid,lstart,cmd |grep -i id=tcserver"
     output = subprocess.check_output(cmd, shell=True)
     lines = output.decode().splitlines()
     return lines
@@ -392,7 +397,9 @@ def main():
     #   delete the directory if it exists
     #   create the directory
     # find tar files
-    list_tarfiles= find_tar_files(soup, GLOBAL_CONFIG['cache_directory'], GLOBAL_CONFIG['tar_files_url']) 
+    list_tarfiles= download_tar_files(soup, GLOBAL_CONFIG['cache_directory'], GLOBAL_CONFIG['tar_files_url']) 
+    
+    # if there are no tar files, exit
     if not list_tarfiles:
         if DEBUG:
             print("[%s] No new avdat version found" % get_timestamp())
@@ -405,16 +412,22 @@ def main():
     if DEBUG:
         print("[%s] last avdat version: %s" % (get_timestamp(), last_version_downloaded))  
     try:
+        # find the latest tar file basename
+        # build the final avdat tar file path
+        # initialize the save directory
         # move the latest tar file to the save directory
+        # store the avdat version
         tarfile_basename = get_tarfile_basename(latest_tarfile)
-        final_avdat_tarfile = "%s/%s" % (GLOBAL_CONFIG['save_directory'], tarfile_basename)
+        final_avdat_tarfile = os.path.join(GLOBAL_CONFIG['save_directory'], tarfile_basename)
         initial_directory_setup(GLOBAL_CONFIG['save_directory'])
         shutil.move(latest_tarfile, final_avdat_tarfile)
         update_avdat_version(final_avdat_tarfile.split('-')[1].split('.')[0])
         if DEBUG:
             print("[%s] Latest AVDAT tarfile saved: %s" % (get_timestamp(), final_avdat_tarfile))
             print("\n[%s] Prepping file for deployment: \n" % get_timestamp())
+        
         run_additional_cmds(GLOBAL_ADDITIONAL_CMDS)
+        
         if DEBUG:
             print("[%s] Completed." % get_timestamp())
     except Exception as e:
@@ -425,6 +438,8 @@ def main():
 # Check if the script is run as the main module
 if __name__ == "__main__":
     # Call the main function
+    if DEBUG:    
+        print("[%s] Starting..." % get_timestamp())
     try:
         main()
     except Exception as e:
