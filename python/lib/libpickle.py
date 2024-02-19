@@ -2,6 +2,7 @@ import pickle
 
 GLOBAL_CONFIG = { 
     'dbfile': '.tmp_pickle',
+    'db': '{}',
 }
  
 def store_data(pickle_file: str, db: dict = {})-> bool:
@@ -30,8 +31,9 @@ if __name__ == '__main__':
     Jagdish = {'key' : 'Jagdish', 'name' : 'Jagdish Pathak',
     'age' : 50, 'pay' : 50000}
  
+    
     # database
-    db = {}
+    db = GLOBAL_CONFIG['db']
     db['Omkar'] = Omkar
     db['Jagdish'] = Jagdish
     
