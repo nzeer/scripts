@@ -1,11 +1,11 @@
-import os
 import subprocess
 import datetime
 import time
 
-CMD = "ps -eo user,pid,lstart,cmd |grep -i id=tcserver"
-RUNTIME = 72 * 60 * 60
-
+GLOBAL_CONFIG = {
+    "cmd": "ps -eo user,pid,lstart,cmd |grep -i id=tcserver",
+    "runtime": 72 * 60 * 60,
+}
 
 # Define a function to parse the date string into a datetime object
 def parse_date(date_string):
@@ -35,7 +35,7 @@ def is_running_long(date_string):
     # Calculate the difference between the current and the process timestamps
     difference = current - timestamp
     # Check if the difference is greater than or equal to 72 hours in seconds
-    if difference >= RUNTIME:
+    if difference >= GLOBAL_CONFIG["runtime"]:
         # Return True
         return difference
     else:
@@ -45,7 +45,7 @@ def is_running_long(date_string):
 
 # Define a function to run the ps command and get the output
 def run_ps():
-    output = subprocess.check_output(CMD, shell=True)
+    output = subprocess.check_output(GLOBAL_CONFIG["cmd"], shell=True)
     lines = output.decode().splitlines()
     return lines
 
