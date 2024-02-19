@@ -330,7 +330,7 @@ def load_config() -> dict:
 
 def parse_config():
     for k,v in GLOBAL_CONFIG.items():
-        if k == 'save_directory' or k == 'cache_directory' or k == 'tmp_directory':
+        if k == 'cache_directory' or k == 'tmp_directory':
             if k == 'tmp_directory':
                 # see if theres a tmp directory
                 # if not create it
@@ -408,6 +408,7 @@ def main():
         # move the latest tar file to the save directory
         tarfile_basename = get_tarfile_basename(latest_tarfile)
         final_avdat_tarfile = "%s/%s" % (GLOBAL_CONFIG['save_directory'], tarfile_basename)
+        initial_directory_setup(GLOBAL_CONFIG['save_directory'])
         shutil.move(latest_tarfile, final_avdat_tarfile)
         update_avdat_version(final_avdat_tarfile.split('-')[1].split('.')[0])
         if DEBUG:
