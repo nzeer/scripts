@@ -1,7 +1,7 @@
 import pickle
 
 GLOBAL_CONFIG = { 
-    'dbfile': 'examplePickle',
+    'dbfile': '.tmp_pickle',
 }
  
 def store_data(pickle_file: str, db: dict = {})-> bool:
@@ -36,6 +36,9 @@ if __name__ == '__main__':
     db['Jagdish'] = Jagdish
     
     if store_data(GLOBAL_CONFIG['dbfile'], db):
+        print("\nUsing picklefile: ", GLOBAL_CONFIG['dbfile'])
         print('Data stored successfully\n')
+        
     if load_data(GLOBAL_CONFIG['dbfile']):
+        print("\nUsing picklefile: ", GLOBAL_CONFIG['dbfile'])
         print('\nData loaded successfully')
