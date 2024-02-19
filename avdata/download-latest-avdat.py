@@ -16,16 +16,13 @@ The script performs the following steps:
 Set DEBUG = True to print debug information.
 ================================================================================================'''
 
-from ast import Raise, parse
-from json import load
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
-from flask import config
-from more_itertools import last
 import requests
 import os
 import shutil
 from datetime import datetime
+import subprocess
 
 DEBUG = True
 
@@ -37,6 +34,11 @@ CONFIG = {
     'last_avdat_version': '0000',
     'tar_files_url': "https://update.nai.com/products/datfiles/4.x/",
 }
+
+GLOBAL_ADDITIONAL_CMDS = [
+    "/bin/bash ./test.sh 1234",
+    "/bin/bash ./test.sh 23456",
+]
 
 GLOBAL_LIST_SYSTEM_DIRECTORIES = [
     "/",
@@ -81,7 +83,7 @@ def load_avdat_version() -> str:
     if DEBUG:    
         print("Looking for: ", version_file_name)
     if not os.path.exists(version_file_name):
-        Raise("Error: %s : %s" % (version_file_name, "File not found"))
+        raise Exception("Error: %s : %s" % (version_file_name, "File not found"))
     
     version = load_file(version_file_name)
     CONFIG['last_avdat_version'] = version
@@ -339,6 +341,29 @@ def parse_config():
             else:
                 if not initial_directory_setup(v):
                     raise OSError("Error: %s : %s" % (v, "Directory creation failed"))
+                
+def run_subprocess(cmd: str) -> list:
+    """
+    Executes a command and returns the output as a list of lines.
+
+    Returns:
+        list: The output of the command as a list of lines.
+    """
+    # cmd = "ps -eo user,pid,lstart,cmd |grep -i id=tcserver"
+    output = subprocess.check_output(cmd, shell=True)
+    lines = output.decode().splitlines()
+    return lines
+
+def run_additional_cmds(list_cmds: list = []):
+    """
+    Run additional commands.
+    """
+    for cmd in list_cmds:
+        if DEBUG:
+            print("Running: ", cmd)
+        call_back_data = run_subprocess(cmd)
+        if DEBUG:
+            print("\n\t\tCallback: ", call_back_data)
 
 def main():
     """
@@ -354,6 +379,7 @@ def main():
     
     #get soup object for the url
     soup = get_soup(CONFIG['tar_files_url'])
+    
     if DEBUG:
         print("Using : ", CONFIG['tar_files_url'])
     
@@ -384,6 +410,10 @@ def main():
         update_avdat_version(final_avdat_tarfile.split('-')[1].split('.')[0])
         if DEBUG:
             print("Latest AVDAT tarfile saved: ", final_avdat_tarfile)
+            print("Prepping file for deployment: ")
+        run_additional_cmds(GLOBAL_ADDITIONAL_CMDS)
+        if DEBUG:
+            print("Completed.")
     except Exception as e:
         if DEBUG:
             print("Error: %s : %s" % (final_avdat_tarfile, e))
