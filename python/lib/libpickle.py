@@ -2,43 +2,46 @@ import pickle
 import os
 
 GLOBAL_CONFIG = { 
-    'pickle_file': './.cache/._pickle',
+    'pickle_file_path': './.cache/._pickle',
     'pickle_obj_db': {},
 }
 
 def get_pickle_config() -> dict:
     return GLOBAL_CONFIG
 
-def set_pickle_config(db_file: str, *, db: dict) -> None:
-    GLOBAL_CONFIG['pickle_file'] = db_file
-    GLOBAL_CONFIG['pickle_obj_db'] = db
+def set_pickle_config(pickle_file_path: str, *, pickle_obj_db: dict) -> None:
+    set_pickle_file(pickle_file_path)
+    set_pickle_obj_db(pickle_obj_db)
     
-def set_pickle_file(db_file: str) -> None:
-    GLOBAL_CONFIG['pickle_file'] = db_file
+def set_pickle_file(pickle_file: str) -> None:
+    get_pickle_config()['pickle_file_path'] = pickle_file
 
-def get_pickle_file() -> str:
-    return GLOBAL_CONFIG['pickle_file']
+def get_pickle_file_path() -> str:
+    return get_pickle_config()['pickle_file_path']
     
-def set_pickle_obj_db(db: dict) -> None:
-    GLOBAL_CONFIG['pickle_obj_db'] = db
+def set_pickle_obj_db(pickle_obj_db: dict) -> None:
+    get_pickle_config()['pickle_obj_db'] = pickle_obj_db
     
 def get_pickle_obj_db() -> dict:
-    return GLOBAL_CONFIG['pickle_obj_db']
+    return get_pickle_config()['pickle_obj_db']
 
-def store_data(pickle_file: str, db: dict = {})-> bool:
+def get_pickle_obj_db_keys() -> list:
+    return list(get_pickle_obj_db().keys())
+
+def store_data(pickle_file_path: str, pickle_obj_db: dict = {})-> bool:
     is_good_write = False
     
-    for keys in db:
-            print('\t\t', keys, '=>', db[keys])
+    for keys in pickle_obj_db:
+            print('\t\t', keys, '=>', pickle_obj_db[keys])
     
-    pickle_file_directory = os.path.dirname(pickle_file)
+    pickle_file_directory = os.path.dirname(pickle_file_path)
     if not os.path.exists(pickle_file_directory):
         os.makedirs(pickle_file_directory)
     
     # Its important to use binary mode
-    with open(pickle_file, 'ab') as db_file:
+    with open(pickle_file_path, 'ab') as db_file:
         # source, destination
-        pickle.dump(db, db_file)
+        pickle.dump(pickle_obj_db, db_file)
         is_good_write = True
     return is_good_write
 
@@ -64,12 +67,12 @@ if __name__ == '__main__':
     db['Omkar'] = Omkar
     db['Jagdish'] = Jagdish
     
-    pickle_file = get_pickle_file()
+    pickle_file_path = get_pickle_file_path()
     
-    print("\nUsing picklefile: ", pickle_file, "\n")
-    if store_data(pickle_file, get_pickle_obj_db()):
+    print("\nUsing picklefile: ", pickle_file_path, "\n")
+    if store_data(pickle_file_path, get_pickle_obj_db()):
         print('\nData stored successfully\n')
     
-    print("\nUsing picklefile: ", pickle_file, "\n")
-    if load_data(pickle_file):
+    print("\nUsing picklefile: ", pickle_file_path, "\n")
+    if load_data(pickle_file_path):
         print('\nData loaded successfully')
