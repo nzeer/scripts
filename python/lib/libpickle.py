@@ -2,11 +2,34 @@ import pickle
 
 GLOBAL_CONFIG = { 
     'dbfile': '.tmp_pickle',
-    'db': '{}',
+    'db': {},
 }
- 
+
+def get_pickle_config() -> dict:
+    return GLOBAL_CONFIG
+
+def set_pickle_config(dbfile: str, *, db: dict) -> None:
+    GLOBAL_CONFIG['dbfile'] = dbfile
+    GLOBAL_CONFIG['db'] = db
+    
+def set_pickle_file(dbfile: str) -> None:
+    GLOBAL_CONFIG['dbfile'] = dbfile
+
+def get_pickle_file() -> str:
+    return GLOBAL_CONFIG['dbfile']
+    
+def set_pickle_db(db: dict) -> None:
+    GLOBAL_CONFIG['db'] = db
+    
+def get_pickle_db() -> dict:
+    return GLOBAL_CONFIG['db']
+
 def store_data(pickle_file: str, db: dict = {})-> bool:
     is_good_write = False
+    
+    for keys in db:
+            print('\t\t', keys, '=>', db[keys])
+    
     # Its important to use binary mode
     with open(pickle_file, 'ab') as db_file:
         # source, destination
@@ -30,17 +53,18 @@ if __name__ == '__main__':
     'age' : 21, 'pay' : 40000}
     Jagdish = {'key' : 'Jagdish', 'name' : 'Jagdish Pathak',
     'age' : 50, 'pay' : 50000}
- 
     
     # database
-    db = GLOBAL_CONFIG['db']
+    db = get_pickle_db()
     db['Omkar'] = Omkar
     db['Jagdish'] = Jagdish
     
-    if store_data(GLOBAL_CONFIG['dbfile'], db):
-        print("\nUsing picklefile: ", GLOBAL_CONFIG['dbfile'])
-        print('Data stored successfully\n')
-        
-    if load_data(GLOBAL_CONFIG['dbfile']):
-        print("\nUsing picklefile: ", GLOBAL_CONFIG['dbfile'])
+    pickle_file = get_pickle_file()
+    
+    print("\nUsing picklefile: ", pickle_file, "\n")
+    if store_data(pickle_file, get_pickle_db()):
+        print('\nData stored successfully\n')
+    
+    print("\nUsing picklefile: ", pickle_file, "\n")
+    if load_data(pickle_file):
         print('\nData loaded successfully')
