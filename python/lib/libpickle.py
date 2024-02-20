@@ -2,28 +2,28 @@ import pickle
 import os
 
 GLOBAL_CONFIG = { 
-    'db_file': './.cache/.tmp_pickle',
-    'db': {},
+    'pickle_file': './.cache/._pickle',
+    'pickle_obj_db': {},
 }
 
 def get_pickle_config() -> dict:
     return GLOBAL_CONFIG
 
 def set_pickle_config(db_file: str, *, db: dict) -> None:
-    GLOBAL_CONFIG['db_file'] = db_file
-    GLOBAL_CONFIG['db'] = db
+    GLOBAL_CONFIG['pickle_file'] = db_file
+    GLOBAL_CONFIG['pickle_obj_db'] = db
     
 def set_pickle_file(db_file: str) -> None:
-    GLOBAL_CONFIG['db_file'] = db_file
+    GLOBAL_CONFIG['pickle_file'] = db_file
 
 def get_pickle_file() -> str:
-    return GLOBAL_CONFIG['db_file']
+    return GLOBAL_CONFIG['pickle_file']
     
 def set_pickle_obj_db(db: dict) -> None:
-    GLOBAL_CONFIG['db'] = db
+    GLOBAL_CONFIG['pickle_obj_db'] = db
     
 def get_pickle_obj_db() -> dict:
-    return GLOBAL_CONFIG['db']
+    return GLOBAL_CONFIG['pickle_obj_db']
 
 def store_data(pickle_file: str, db: dict = {})-> bool:
     is_good_write = False
@@ -42,7 +42,7 @@ def store_data(pickle_file: str, db: dict = {})-> bool:
         is_good_write = True
     return is_good_write
 
-def load_data(pickle_file:str)-> bool:
+def load_data(pickle_file: str)-> bool:
     is_good_read = False    
     # for reading also binary mode is important
     with open(pickle_file, 'rb') as db_file:
