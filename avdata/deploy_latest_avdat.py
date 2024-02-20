@@ -35,6 +35,11 @@ GLOBAL_CONFIG = {
     'tar_files_url': "https://update.nai.com/products/datfiles/4.x/",
 }
 
+'''GLOBAL_ADDITIONAL_CMDS = {
+    'avdat_prep_playbook': "/bin/bash ./setup.sh",
+    'avdat_playbook_execute': "ansible-playbook -e='@/home/rjackson/.ansible-pass/passwd.yml' /home/rjackson/playbooks/deploy-avdat.yaml",
+}'''
+
 GLOBAL_ADDITIONAL_CMDS = {
     'avdat_prep_playbook': "/bin/bash ./test.sh 1234",
     'avdat_playbook_execute': "/bin/bash ./test.sh 23456",
