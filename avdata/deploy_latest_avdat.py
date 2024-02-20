@@ -16,6 +16,7 @@ The script performs the following steps:
 Set DEBUG = True to print debug information.
 ================================================================================================'''
 
+import tarfile
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
 import requests
@@ -236,21 +237,45 @@ def download_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> li
         list: A list of tar files.
     """
     files = []
+    file_to_download = None
+    current_version = None
+    tarfile_download_path = None
     for link in soup.find_all('a'):
+        proposed_version = None
         file  = link.get('href')
         if file.endswith(".tar"):
-            if file.split('-')[1].split('.')[0] <= GLOBAL_CONFIG['last_avdat_version']:
+            # strip version off tarfile name
+            if DEBUG:   
+                print("[%s] Found tarfile: %s" % (get_timestamp(), file))
+            url_tarfile_version = file.split('-')[1].split('.')[0]
+            
+            # if its our first file, set it as the file to download
+            if current_version is None:
+                current_version = url_tarfile_version 
+            proposed_version = url_tarfile_version
+            
+            # if we have a file to download, check if its newer than the current version
+            if url_tarfile_version <= GLOBAL_CONFIG['last_avdat_version']:
                 if DEBUG:
                     print("[%s] AVDAT already downloaded" % get_timestamp())
                 return files
-            tarfile_to_download = "%s/%s" % (downloads_directory, file)
-            files.append(tarfile_to_download)
-            if DEBUG:
-                print("[%s] Downloading tarfile: %s" % (get_timestamp(), url + file))
-            
-            urlretrieve(url + file, tarfile_to_download)
-            if DEBUG:
-                print("[%s] Downloaded tarfile: %s" % (get_timestamp(), tarfile_to_download))
+            else:
+                if DEBUG:
+                    print("[%s] New AVDAT version found: %s" % (get_timestamp(), file.split('-')[1].split('.')[0]))
+                if proposed_version > current_version:
+                    file_to_download = file
+                    tarfile_download_path = "%s/%s" % (downloads_directory, file_to_download)
+                    current_version = proposed_version    
+    # add the tarfile to the list of files
+    files.append(tarfile_download_path)
+    
+    if tarfile_download_path is not None:
+        if DEBUG:
+            print("[%s] Downloading tarfile: %s" % (get_timestamp(), url + file_to_download))
+        # download the tarfile
+        urlretrieve(url + file_to_download, tarfile_download_path)
+        if DEBUG:
+            print("[%s] Downloaded tarfile: %s" % (get_timestamp(), tarfile_download_path))
     return files
 
 def find_latest_tar_file(list_tarfiles: list) -> str:
@@ -357,8 +382,13 @@ def run_subprocess(cmd: str) -> list:
     Returns:
         list: The output of the command as a list of lines.
     """
-    output = subprocess.check_output(cmd, shell=True)
-    lines = output.decode().splitlines()
+    lines = []
+    try:
+        output = subprocess.check_output(cmd, shell=True)
+        lines = output.decode().splitlines()
+    except subprocess.CalledProcessError as e:
+        if DEBUG:
+            print("[%s] Error: %s : %s" % (get_timestamp(), cmd, e))
     return lines
 
 def run_additional_cmds(cmds: dict = {}):
@@ -370,7 +400,9 @@ def run_additional_cmds(cmds: dict = {}):
             print("[%s] Running: \n\t[ %s ]:\t%s" % (get_timestamp(), cmd_name, cmd))
         call_back_data = run_subprocess(cmd)
         if DEBUG:
-            print("\n\t\t[%s] Callback:\t%s\n" % (get_timestamp(), call_back_data))
+            print("\n\t\t[%s] Callback:\t\n" % (get_timestamp()))
+            for entry in call_back_data:
+                print("\n\t\tCallback data:\t%s\n" % (entry))
 
 def main():
     """
