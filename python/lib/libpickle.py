@@ -1,27 +1,28 @@
 import pickle
+import os
 
 GLOBAL_CONFIG = { 
-    'dbfile': '.tmp_pickle',
+    'db_file': './.cache/.tmp_pickle',
     'db': {},
 }
 
 def get_pickle_config() -> dict:
     return GLOBAL_CONFIG
 
-def set_pickle_config(dbfile: str, *, db: dict) -> None:
-    GLOBAL_CONFIG['dbfile'] = dbfile
+def set_pickle_config(db_file: str, *, db: dict) -> None:
+    GLOBAL_CONFIG['db_file'] = db_file
     GLOBAL_CONFIG['db'] = db
     
-def set_pickle_file(dbfile: str) -> None:
-    GLOBAL_CONFIG['dbfile'] = dbfile
+def set_pickle_file(db_file: str) -> None:
+    GLOBAL_CONFIG['db_file'] = db_file
 
 def get_pickle_file() -> str:
-    return GLOBAL_CONFIG['dbfile']
+    return GLOBAL_CONFIG['db_file']
     
-def set_pickle_db(db: dict) -> None:
+def set_pickle_obj_db(db: dict) -> None:
     GLOBAL_CONFIG['db'] = db
     
-def get_pickle_db() -> dict:
+def get_pickle_obj_db() -> dict:
     return GLOBAL_CONFIG['db']
 
 def store_data(pickle_file: str, db: dict = {})-> bool:
@@ -29,6 +30,10 @@ def store_data(pickle_file: str, db: dict = {})-> bool:
     
     for keys in db:
             print('\t\t', keys, '=>', db[keys])
+    
+    pickle_file_directory = os.path.dirname(pickle_file)
+    if not os.path.exists(pickle_file_directory):
+        os.makedirs(pickle_file_directory)
     
     # Its important to use binary mode
     with open(pickle_file, 'ab') as db_file:
@@ -55,14 +60,14 @@ if __name__ == '__main__':
     'age' : 50, 'pay' : 50000}
     
     # database
-    db = get_pickle_db()
+    db = get_pickle_obj_db()
     db['Omkar'] = Omkar
     db['Jagdish'] = Jagdish
     
     pickle_file = get_pickle_file()
     
     print("\nUsing picklefile: ", pickle_file, "\n")
-    if store_data(pickle_file, get_pickle_db()):
+    if store_data(pickle_file, get_pickle_obj_db()):
         print('\nData stored successfully\n')
     
     print("\nUsing picklefile: ", pickle_file, "\n")
