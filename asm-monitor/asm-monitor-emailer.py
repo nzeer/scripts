@@ -52,7 +52,7 @@ def get_usage_data(log_files_path: str, days: int=7) -> list:
         if log_data:
             total_space = round(log_data["total"], 2)
             used_space = round(total_space - log_data["free"], 2)
-            usage_data.append((date, used_space))
+            usage_data.append((date, used_space, total_space))
     return usage_data
 
 def create_weekly_graph(usage_data: list, plot_path: str):
@@ -76,6 +76,30 @@ def create_weekly_graph(usage_data: list, plot_path: str):
     if DEBUG:
         print(f"Graph saved to {plot_path}")
 
+def create_weekly_graph2(usage_data: list, plot_path: str):
+    if not usage_data:
+        if DEBUG:
+            print("No usage data available to plot.")
+        return
+    print(usage_data)
+    dates = [data[0] for data in usage_data]
+    used_space = [data[1] for data in usage_data]
+    total_space = [data[2] for data in usage_data]  # Extract total space data
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(dates, used_space, marker='o', label='Used Space (GB)')
+    plt.plot(dates, total_space, marker='x', linestyle='--', label='Total Space (GB)')
+    plt.xlabel('Date')
+    plt.ylabel('Space (GB)')
+    plt.title('File System Usage and Total Space for the Week')
+    plt.legend()
+    plt.grid(True)
+    plt.gcf().autofmt_xdate()
+    plt.savefig(plot_path)
+    plt.close()
+    if DEBUG:
+        print(f"Graph saved to {plot_path}")
+
 def send_email_with_graph(plot_path: str, email_config: dict):
     msg = MIMEMultipart()
     msg['From'] = email_config['smtp_from']
@@ -88,8 +112,6 @@ def send_email_with_graph(plot_path: str, email_config: dict):
     
     try:
         with smtplib.SMTP(email_config['smtp_host'], email_config['smtp_port']) as server:
-            server.starttls()
-            server.login(email_config['smtp_user'], email_config['smtp_pass'])
             server.send_message(msg)
             if DEBUG:
                 print("Email sent successfully.")
@@ -101,5 +123,5 @@ if __name__ == "__main__":
     init_directories(os.path.dirname(GLOBAL_FSMON_CONFIG['plot_path']))
     init_directories(GLOBAL_FSMON_CONFIG['log_files_path'])
     usage_data = get_usage_data(GLOBAL_FSMON_CONFIG['log_files_path'], GLOBAL_FSMON_CONFIG['days_to_parse'])
-    create_weekly_graph(usage_data, GLOBAL_FSMON_CONFIG['plot_path'])
+    create_weekly_graph2(usage_data, GLOBAL_FSMON_CONFIG['plot_path'])
     #send_email_with_graph(GLOBAL_FSMON_CONFIG['plot_path'], GLOBAL_FSMON_CONFIG)
