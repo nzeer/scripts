@@ -14,12 +14,10 @@ GLOBAL_TEST_LOGIN_CONFIG = {
     'ansible_hosts_file': "/inventory/inventory",
     'ssh_user': "rjackson",
     'ssh_key_path': "./id_rsa",
-    'email_sender': "your_email@example.com",
-    'email_recipients': ["recipient1@example.com", "recipient2@example.com"],
-    'smtp_server': "smtp.example.com",
+    'email_sender': "wralc.tila.centra@us.af.mil",
+    'email_recipients': ["robert.jackson.111.ctr@us.af.mil", "gregory.sanders.4.ctr@us.af.mil", "john.gray.29.ctr@us.af.mil"],
+    'smtp_server': "af-smtp.us.af.mil",
     'smtp_port': 587,  # or 465 for SSL
-    'smtp_user': "smtp_user",
-    'smtp_password': "smtp_password",
 }
 
 def inventory_exists(inventory_path):
