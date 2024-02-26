@@ -1,0 +1,28 @@
+---
+- name: Test Connectivity and Record Unsuccessful Attempts
+  hosts: all_servers
+  gather_facts: true
+
+  tasks:
+    - name: Ping hosts to check connectivity
+      ping:
+      register: ping_result
+      ignore_errors: true
+
+    - name: Record unsuccessful ping attempts to a local CSV file
+      delegate_to: localhost
+      run_once: true
+      template:
+        src: results_template_unsuccessful.j2
+        dest: "./ping_unsuccessful_results.csv"
+      vars:
+        results:
+          - host: "{{ inventory_hostname }}"
+            status: "{{ 'Failed' if ping_result.failed else 'Skipped' }}"
+      when: ping_result.failed
+
+    - name: Run Python script to send email report
+      delegate_to: localhost
+      run_once: true
+      command: "./send_email_report.py"
+      when: ping_result.failed

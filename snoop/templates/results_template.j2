@@ -1,0 +1,4 @@
+host,ip,hostname,status
+{% for result in results %}
+{{ result.host }},{{ result.ip }},{{ result.hostname }},{{ result.status }}
+{% endfor %}

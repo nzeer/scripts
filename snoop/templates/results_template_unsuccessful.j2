@@ -1,0 +1,4 @@
+host,status
+{% for result in results %}
+{{ result.host }},{{ result.status }}
+{% endfor %}
