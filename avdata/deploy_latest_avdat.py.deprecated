@@ -16,10 +16,6 @@ The script performs the following steps:
 Set DEBUG = True to print debug information.
 ================================================================================================'''
 
-import configparser
-import logging
-import colorlog
-from math import log
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
 import requests
@@ -28,63 +24,16 @@ import shutil
 from datetime import datetime
 import subprocess
 
-GLOBAL_CONFIG_PATH = "./config.ini"
+DEBUG = True
 
-# Load configuration
-config = configparser.ConfigParser()
-config.read(GLOBAL_CONFIG_PATH)
-
-# Variables defined from the config file
-save_directory = config['FILESYSTEM']['save_directory']
-cache_directory = config['FILESYSTEM']['cache_directory']
-tmp_directory = config['FILESYSTEM']['tmp_directory']
-
-avdat_version_file = config['AVDAT']['avdat_version_file']
-last_avdat_version = config['AVDAT']['last_avdat_version']
-tar_files_url = config['AVDAT']['tar_files_url']
-
-log_file = config['LOGGING']['log_file']
-
-# Create a logger
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)  # Set the log level to INFO
-
-# Create console handler and set level to debug
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-
-# Create a formatter with color
-formatter = colorlog.ColoredFormatter(
-    "%(blue)s[%(asctime)s] %(log_color)s%(levelname)-8s%(reset)s %(message)s",
-    datefmt=None,
-    reset=True,
-    log_colors={
-        'DEBUG':    'cyan',
-        'INFO':     'green',
-        'WARNING':  'yellow',
-        'ERROR':    'red',
-        'CRITICAL': 'red,bg_white',
-    },
-    secondary_log_colors={},
-    style='%'
-)
-
-# Create file handler and set level to debug
-file_handler = logging.FileHandler(log_file)  # Log messages to this file
-file_handler.setLevel(logging.DEBUG)
-
-# Create formatter and add it to the handlers
-#formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] - %(message)s')
-console_handler.setFormatter(formatter)
-file_handler.setFormatter(formatter)
-
-# Add the handlers to the logger
-logger.addHandler(console_handler)
-logger.addHandler(file_handler)
-
-# Now you can use logging as before
-logging.info("Initializing logging...")
-
+GLOBAL_CONFIG = {
+    'save_directory': "./dat_file",
+    'cache_directory': "./.cache",
+    'tmp_directory': "./.tmp",
+    'avdat_version_file': "latest_avdat.txt",
+    'last_avdat_version': '0000',
+    'tar_files_url': "https://update.nai.com/products/datfiles/4.x/",
+}
 
 '''GLOBAL_ADDITIONAL_CMDS = {
     'avdat_prep_playbook': "/bin/bash ./setup.sh",
@@ -120,41 +69,72 @@ GLOBAL_LIST_SYSTEM_DIRECTORIES = [
 ]
 
 def get_timestamp() -> str:
+    """
+    Returns the current timestamp in ISO 8601 format.
+
+    :return: The current timestamp as a string.
+    """
     return datetime.now().isoformat(sep=" ")
 
 def load_avdat_version() -> str:
-    version_file_name = os.path.join(tmp_directory, avdat_version_file)
+    """
+    Load the AVDAT version.
+
+    Returns:
+        str: The AVDAT version.
+    """
+    version_file_name = os.path.join(GLOBAL_CONFIG['tmp_directory'], GLOBAL_CONFIG['avdat_version_file'])
     version = "0000"
-    logging.info(f"Loading: {version_file_name}")  
+    if DEBUG:    
+        print("[%s] Looking for: %s" % (get_timestamp(), version_file_name))
     if not os.path.exists(version_file_name):
-        logging.error(f"Error: {version_file_name} : File not found")
-        raise Exception(f"Error: {version_file_name} : File not found")
+        raise Exception("[%s] Error: %s : %s" % (get_timestamp(), version_file_name, "File not found"))
     
     version = load_file(version_file_name)
-    global last_avdat_version
-    last_avdat_version = version
+    GLOBAL_CONFIG['last_avdat_version'] = version
     return version
 
 def load_file(file_target: str, *, file_mode: str = "r") -> str:
+    """
+    Load content from a file.
+
+    Args:
+        file_target (str): The path of the file to load from.
+        file_mode (str, optional): The mode to open the file in. Defaults to "r" (read mode).
+
+    Returns:
+        str: The content of the file.
+    """
     if not os.path.exists(file_target):
-        logging.warn(f"File not found: {file_target}")
+        if DEBUG:
+            print("[%s] File not found: %s" % (get_timestamp(), file_target))
         return None
-    logging.info(f"Found file: {file_target}")
-    with open(file_target, file_mode) as open_file_target:
+    if DEBUG:
+        print("[%s] Found file: %s" % (get_timestamp(), file_target))
+    with open(file_target, file_mode) as open_file_target:  # read mode
         content = open_file_target.read()
-        logging.info(f"loaded {file_target}")
+        if DEBUG:
+            print("[%s] loaded %s" % (get_timestamp(), file_target))
     return content
 
 def update_avdat_version(version: str="0000") -> bool:
-    version_file_name = os.path.join(tmp_directory, avdat_version_file)
+    """
+    Write the AVDAT version to a file.
+
+    Args:
+        version (str): The AVDAT version.
+    Returns:
+        bool: True if the version is written to the file, False otherwise.
+    """
+    version_file_name = os.path.join(GLOBAL_CONFIG['tmp_directory'], GLOBAL_CONFIG['avdat_version_file'])
     if not os.path.exists(version_file_name):
-        if not os.path.isdir(tmp_directory):
-            os.makedirs(tmp_directory)
-            logging.info(f"Created: {tmp_directory}")
+        if not os.path.isdir(GLOBAL_CONFIG['tmp_directory']):
+            os.makedirs(GLOBAL_CONFIG['tmp_directory'])
+            if DEBUG:
+                print("[%s] Created: %s" % (get_timestamp(), GLOBAL_CONFIG['tmp_directory']))
         if not version:
             version = "0000"
-    global last_avdat_version
-    last_avdat_version = version
+    GLOBAL_CONFIG['last_avdat_version'] = version
     return write_file(version_file_name, content_to_write=version, file_mode="w")
 
 def write_file(file_target: str, *, file_mode: str = "a", content_to_write: str = "") -> bool:
@@ -168,32 +148,47 @@ def write_file(file_target: str, *, file_mode: str = "a", content_to_write: str 
     """
     wrote_file = False
     if file_target:
-        logging.info(f"Found file: {file_target}")
+        if DEBUG:
+            print("[%s] Found file: %s" % (get_timestamp(), file_target))
         with open(file_target, file_mode) as open_file_target:  # append mode
             open_file_target.write(content_to_write)
             wrote_file = True
-        logging.info(f"updated {file_target}")
+        if DEBUG:
+            print("[%s] updated %s" % (get_timestamp(), file_target))
     else:
-        logging.warn(f"File not found: {file_target}")
+        if DEBUG:
+            print("[%s] File not found: %s" % (get_timestamp(), file_target))
     return wrote_file
 
 def initial_directory_setup(directory_path: str, initialize_directory: bool = True) -> bool:
+    """
+    Create a directory, delete if pre-existing.
+
+    Args:
+        directory_path (str): The path of the directory to create.
+
+    Returns:
+        bool: True if the directory is created, False otherwise.
+    """
     bool_complete = False
     try:
         if os.path.exists(directory_path):
-            logging.info(f"Found existing : {directory_path}")
+            if DEBUG:
+                print("[%s] Found existing : %s" % (get_timestamp(), directory_path))
             if initialize_directory:
                 if delete_directory(directory_path):
-                    logging.info(f"Deleted: {directory_path}")
+                    if DEBUG:
+                        print("[%s] Deleted: %s" % (get_timestamp(), directory_path))
                     os.makedirs(directory_path)
-                    logging.info(f"Created: {directory_path}")
+                    if DEBUG:
+                        print("[%s] Created: %s" % (get_timestamp(), directory_path))
         else:
             os.makedirs(directory_path)
-            logging.info(f"Created: {directory_path}")
+            if DEBUG:
+                print("[%s] Created: %s" % (get_timestamp(), directory_path))
         bool_complete = os.path.exists(directory_path)
     except OSError as e:
-        logging.error(f"Error: {directory_path} : {e.strerror}")
-        raise OSError(f"Error: {directory_path} : {e.strerror}")
+        raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, e.strerror))
     return bool_complete
 
 def is_system_directory(directory_path: str) -> bool:
@@ -206,7 +201,6 @@ def is_system_directory(directory_path: str) -> bool:
     Returns:
         bool: True if the directory is a system directory, False otherwise.
     """
-    logging.debug(f"Checking: {directory_path}")
     return directory_path in GLOBAL_LIST_SYSTEM_DIRECTORIES
 
 def delete_directory(directory_path: str) -> bool:
@@ -223,17 +217,16 @@ def delete_directory(directory_path: str) -> bool:
     bool_complete = False
     # guard rails so we dont delete system directories
     if is_system_directory(directory_path):
-        logging.Error(f"Found system directory: {directory_path}")
-        raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, "System directory"))
+        if DEBUG:
+            raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, "System directory"))
     else:
-        logging.debug(f"Not a system directory: {directory_path}")
-        logging.info(f"Deleting: {directory_path}")
+        if DEBUG:
+            print("[%s] Not a system directory: %s" % (get_timestamp(), directory_path))
         try:
             shutil.rmtree(directory_path)
             if not os.path.exists(directory_path):
                 bool_complete = True
         except OSError as e:
-            logging.error(f"Error: {directory_path} : {e.strerror}")
             raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, e.strerror))
     return bool_complete
 
@@ -256,7 +249,8 @@ def download_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> li
         file  = link.get('href')
         if file.endswith(".tar"):
             # strip version off tarfile name
-            logging.info(f"Found tarfile: {file}")   
+            if DEBUG:   
+                print("[%s] Found tarfile: %s" % (get_timestamp(), file))
             url_tarfile_version = file.split('-')[1].split('.')[0]
             
             # if its our first file, set it as the file to download
@@ -265,35 +259,27 @@ def download_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> li
             proposed_version = url_tarfile_version
             
             # if we have a file to download, check if its newer than the current version
-            if url_tarfile_version <= last_avdat_version:
-                logging.info(f"AVDAT already downloaded")
+            if url_tarfile_version <= GLOBAL_CONFIG['last_avdat_version']:
+                if DEBUG:
+                    print("[%s] AVDAT already downloaded" % get_timestamp())
                 return files
             else:
-                logging.info(f"New AVDAT version found: {file.split('-')[1].split('.')[0]}")
+                if DEBUG:
+                    print("[%s] New AVDAT version found: %s" % (get_timestamp(), file.split('-')[1].split('.')[0]))
                 if proposed_version > current_version:
                     file_to_download = file
                     tarfile_download_path = "%s/%s" % (downloads_directory, file_to_download)
-                    logging.debug(f"Added file to download: {url + file_to_download}")
                     current_version = proposed_version    
     # add the tarfile to the list of files
     files.append(tarfile_download_path)
     
-    # download the tarfile
-    # try 3 times
     if tarfile_download_path is not None:
-        for i in range(3):
-            try:
-                logging.info(f"Downloading tarfile: {url + file_to_download}")
-                # download the tarfile
-                urlretrieve(url + file_to_download, tarfile_download_path)
-                if os.path.exists(tarfile_download_path):
-                    logging.debug(f"Downloaded tarfile: {tarfile_download_path}")
-                    break
-            except Exception as e:
-                logging.error(f"Error: {url + file_to_download} : {e}")
-                if i<3:
-                    continue
-                raise Exception(f"Error: {url + file_to_download} : {e}")
+        if DEBUG:
+            print("[%s] Downloading tarfile: %s" % (get_timestamp(), url + file_to_download))
+        # download the tarfile
+        urlretrieve(url + file_to_download, tarfile_download_path)
+        if DEBUG:
+            print("[%s] Downloaded tarfile: %s" % (get_timestamp(), tarfile_download_path))
     return files
 
 def find_latest_tar_file(list_tarfiles: list) -> str:
@@ -311,7 +297,8 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
     for tarfile in list_tarfiles:
         if not latest_tarfile:
             latest_tarfile = tarfile
-            logging.info(f"Adding Latest tarfile: {tarfile}")
+            if DEBUG:
+                print("[%s] Adding Latest tarfile: %s" % (get_timestamp(), tarfile))
         else:
             current_version = latest_tarfile.split('-')[1]
             proposed_version = tarfile.split('-')[1]
@@ -319,15 +306,17 @@ def find_latest_tar_file(list_tarfiles: list) -> str:
                 previous_tarfile = latest_tarfile
                 latest_tarfile = tarfile
                 update_avdat_version(proposed_version)
-                logging.info(f"Added Newer tarfile: {latest_tarfile}")
+                if DEBUG:
+                    print("[%s] Added Newer tarfile: %s" % (get_timestamp(), latest_tarfile))
             try:
-                logging.debug(f"Removing older tarfile: {previous_tarfile}")
+                if DEBUG:
+                    print("[%s] Removing older tarfile: %s" % (get_timestamp(), previous_tarfile))
                 if previous_tarfile:
                     os.remove(previous_tarfile)
             except Exception as e:
-                logging.warn(f"Warn: {previous_tarfile} : {e}")
                 pass                
-    logging.info(f"Latest file: {latest_tarfile}")
+    if DEBUG:
+        print("[%s] Latest file: %s" % (get_timestamp(), latest_tarfile))
     return latest_tarfile
 
 def get_tarfile_basename(tarfile: str) -> str:
@@ -356,7 +345,7 @@ def get_soup(url: str) -> BeautifulSoup:
     data = r.text
     return BeautifulSoup(data, features="lxml")
 
-def load_config():
+def load_config() -> dict:
     """
     Load the configuration.
 
@@ -366,6 +355,8 @@ def load_config():
     
     parse_config()
     
+    return GLOBAL_CONFIG
+
 def parse_config():
     """
     Parses the global configuration and performs directory setup based on the configuration values.
@@ -373,20 +364,20 @@ def parse_config():
     Raises:
         OSError: If directory creation fails.
     """
-    if tmp_directory:
-        # see if theres a tmp directory
-        # if not create it
-        if not os.path.exists(tmp_directory):
-            if update_avdat_version():
-                logging.info(f"Created tmp directory: {tmp_directory}")
-        if not initial_directory_setup(tmp_directory, initialize_directory=False):
-            logging.error(f"Something went wrong with tmp directory creation: {tmp_directory}")
-            raise OSError(f"Something went wrong with tmp directory creation: {tmp_directory}") 
-        
-    if cache_directory:
-        if not initial_directory_setup(cache_directory):
-            logging.error(f"Directory creation failed: {cache_directory}")
-            raise OSError(f"Directory creation failed: {cache_directory}")
+    for k,v in GLOBAL_CONFIG.items():
+        if k == 'cache_directory' or k == 'tmp_directory':
+            if k == 'tmp_directory':
+                # see if theres a tmp directory
+                # if not create it
+                if not os.path.exists(v):
+                    if update_avdat_version():
+                        print("[%s] Created: %s" % (get_timestamp(), v))
+                if not initial_directory_setup(v, initialize_directory=False):
+                    raise OSError("[%s] Error: %s : %s" % (get_timestamp(), v, "Something went wrong with tmp directory creation")) 
+                
+            else:
+                if not initial_directory_setup(v):
+                    raise OSError("[%s] Error: %s : %s" % (get_timestamp(), v, "Directory creation failed"))
                 
 def run_subprocess(cmd: str) -> list:
     """
@@ -400,7 +391,8 @@ def run_subprocess(cmd: str) -> list:
         output = subprocess.check_output(cmd, shell=True)
         lines = output.decode().splitlines()
     except subprocess.CalledProcessError as e:
-        logging.error(f"{cmd} : {e}")
+        if DEBUG:
+            print("[%s] Error: %s : %s" % (get_timestamp(), cmd, e))
     return lines
 
 def run_additional_cmds(cmds: dict = {}):
@@ -408,11 +400,13 @@ def run_additional_cmds(cmds: dict = {}):
     Run additional commands.
     """
     for cmd_name, cmd in cmds.items():
-        logging.info(f"Running: \n\t[ {cmd_name} ]:\t{cmd}")
+        if DEBUG:
+            print("[%s] Running: \n\t[ %s ]:\t%s" % (get_timestamp(), cmd_name, cmd))
         call_back_data = run_subprocess(cmd)
-        logging.info(f"Callback:\t\n")
-        for entry in call_back_data:
-            logging.info(f"Callback data:\t{entry}")
+        if DEBUG:
+            print("\n\t\t[%s] Callback:\t\n" % (get_timestamp()))
+            for entry in call_back_data:
+                print("\n\t\tCallback data:\t%s\n" % (entry))
 
 def main():
     """
@@ -427,28 +421,32 @@ def main():
     last_version_downloaded = load_avdat_version()
     
     #get soup object for the url
-    soup = get_soup(tar_files_url)
+    soup = get_soup(GLOBAL_CONFIG['tar_files_url'])
     
-    logging.info(f"Using : {tar_files_url}")
+    if DEBUG:
+        print("[%s] Using : %s" % (get_timestamp(), GLOBAL_CONFIG['tar_files_url']))
     
-    logging.info(f"Last avdat version downloaded: {last_avdat_version}")
+    if DEBUG:
+        print("[%s] Last avdat version downloaded: %s" % (get_timestamp(), GLOBAL_CONFIG['last_avdat_version']))
         
     # initialize directories:
     #   delete the directory if it exists
     #   create the directory
     # find tar files
-    list_tarfiles= download_tar_files(soup, cache_directory, tar_files_url) 
+    list_tarfiles= download_tar_files(soup, GLOBAL_CONFIG['cache_directory'], GLOBAL_CONFIG['tar_files_url']) 
     
     # if there are no tar files, exit
     if not list_tarfiles:
-        logging.info(f"No new avdat version found")
+        if DEBUG:
+            print("[%s] No new avdat version found" % get_timestamp())
         return
     
     # find the latest tar file
     latest_tarfile= find_latest_tar_file(list_tarfiles)
     last_version_downloaded = latest_tarfile.split('-')[1].split('.')[0]
     
-    logging.info(f"Latest AVDAT tarfile: {latest_tarfile}")
+    if DEBUG:
+        print("[%s] last avdat version: %s" % (get_timestamp(), last_version_downloaded))  
     try:
         # find the latest tar file basename
         # build the final avdat tar file path
@@ -456,27 +454,29 @@ def main():
         # move the latest tar file to the save directory
         # store the avdat version
         tarfile_basename = get_tarfile_basename(latest_tarfile)
-        final_avdat_tarfile = os.path.join(save_directory, tarfile_basename)
-        initial_directory_setup(save_directory)
+        final_avdat_tarfile = os.path.join(GLOBAL_CONFIG['save_directory'], tarfile_basename)
+        initial_directory_setup(GLOBAL_CONFIG['save_directory'])
         shutil.move(latest_tarfile, final_avdat_tarfile)
         update_avdat_version(final_avdat_tarfile.split('-')[1].split('.')[0])
-        
-        logging.info(f"Latest AVDAT tarfile saved: {final_avdat_tarfile}")
-        logging.info(f"Prepping file for deployment...")
+        if DEBUG:
+            print("[%s] Latest AVDAT tarfile saved: %s" % (get_timestamp(), final_avdat_tarfile))
+            print("\n[%s] Prepping file for deployment: \n" % get_timestamp())
         
         run_additional_cmds(GLOBAL_ADDITIONAL_CMDS)
         
-        logging.info(f"Completed.")
+        if DEBUG:
+            print("[%s] Completed." % get_timestamp())
     except Exception as e:
-        logging.error(f": {final_avdat_tarfile} : {e}")
-        raise Exception(f": {final_avdat_tarfile} : {e}")
+        if DEBUG:
+            print("[%s] Error: %s : %s" % (get_timestamp(), final_avdat_tarfile, e))
+        raise Exception("[%s] Error: %s : %s" % (get_timestamp(), final_avdat_tarfile, e))
 
 # Check if the script is run as the main module
 if __name__ == "__main__":
     # Call the main function
-    logging.info(f"Starting...")    
-    
+    if DEBUG:    
+        print("[%s] Starting..." % get_timestamp())
     try:
         main()
     except Exception as e:
-        logging.error(f": {e}")
+        print(str(e))

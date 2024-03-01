@@ -18,7 +18,6 @@ Set DEBUG = True to print debug information.
 
 import configparser
 import logging
-import colorlog
 from math import log
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
@@ -34,15 +33,15 @@ GLOBAL_CONFIG_PATH = "./config.ini"
 config = configparser.ConfigParser()
 config.read(GLOBAL_CONFIG_PATH)
 
+print(config.sections())
+
 # Variables defined from the config file
-save_directory = config['FILESYSTEM']['save_directory']
-cache_directory = config['FILESYSTEM']['cache_directory']
-tmp_directory = config['FILESYSTEM']['tmp_directory']
-
-avdat_version_file = config['AVDAT']['avdat_version_file']
-last_avdat_version = config['AVDAT']['last_avdat_version']
-tar_files_url = config['AVDAT']['tar_files_url']
-
+save_directory = config['DEFAULT']['save_directory']
+cache_directory = config['DEFAULT']['cache_directory']
+tmp_directory = config['DEFAULT']['tmp_directory']
+avdat_version_file = config['DEFAULT']['avdat_version_file']
+last_avdat_version = config['DEFAULT']['last_avdat_version']
+tar_files_url = config['DEFAULT']['tar_files_url']
 log_file = config['LOGGING']['log_file']
 
 # Create a logger
@@ -53,28 +52,12 @@ logger.setLevel(logging.DEBUG)  # Set the log level to INFO
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
 
-# Create a formatter with color
-formatter = colorlog.ColoredFormatter(
-    "%(blue)s[%(asctime)s] %(log_color)s%(levelname)-8s%(reset)s %(message)s",
-    datefmt=None,
-    reset=True,
-    log_colors={
-        'DEBUG':    'cyan',
-        'INFO':     'green',
-        'WARNING':  'yellow',
-        'ERROR':    'red',
-        'CRITICAL': 'red,bg_white',
-    },
-    secondary_log_colors={},
-    style='%'
-)
-
 # Create file handler and set level to debug
 file_handler = logging.FileHandler(log_file)  # Log messages to this file
 file_handler.setLevel(logging.DEBUG)
 
 # Create formatter and add it to the handlers
-#formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] - %(message)s')
+formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] - %(message)s')
 console_handler.setFormatter(formatter)
 file_handler.setFormatter(formatter)
 
@@ -373,20 +356,21 @@ def parse_config():
     Raises:
         OSError: If directory creation fails.
     """
-    if tmp_directory:
-        # see if theres a tmp directory
-        # if not create it
-        if not os.path.exists(tmp_directory):
-            if update_avdat_version():
-                logging.info(f"Created tmp directory: {tmp_directory}")
-        if not initial_directory_setup(tmp_directory, initialize_directory=False):
-            logging.error(f"Something went wrong with tmp directory creation: {tmp_directory}")
-            raise OSError(f"Something went wrong with tmp directory creation: {tmp_directory}") 
-        
-    if cache_directory:
-        if not initial_directory_setup(cache_directory):
-            logging.error(f"Directory creation failed: {cache_directory}")
-            raise OSError(f"Directory creation failed: {cache_directory}")
+    if cache_directory or tmp_directory:
+        if tmp_directory:
+            # see if theres a tmp directory
+            # if not create it
+            if not os.path.exists(tmp_directory):
+                if update_avdat_version():
+                    logging.info(f"Created tmp directory: {tmp_directory}")
+            if not initial_directory_setup(tmp_directory, initialize_directory=False):
+                logging.error(f"Something went wrong with tmp directory creation: {tmp_directory}")
+                raise OSError(f"Something went wrong with tmp directory creation: {tmp_directory}") 
+            
+        else:
+            if not initial_directory_setup(cache_directory):
+                logging.error(f"Directory creation failed: {cache_directory}")
+                raise OSError(f"Directory creation failed: {cache_directory}")
                 
 def run_subprocess(cmd: str) -> list:
     """
