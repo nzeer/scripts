@@ -19,13 +19,11 @@ Set DEBUG = True to print debug information.
 import configparser
 import logging
 import colorlog
-from math import log
 from urllib.request import urlretrieve
 from bs4 import BeautifulSoup
 import requests
 import os
 import shutil
-from datetime import datetime
 import subprocess
 
 GLOBAL_CONFIG_PATH = "./config.ini"
@@ -74,7 +72,6 @@ file_handler = logging.FileHandler(log_file)  # Log messages to this file
 file_handler.setLevel(logging.DEBUG)
 
 # Create formatter and add it to the handlers
-#formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] - %(message)s')
 console_handler.setFormatter(formatter)
 file_handler.setFormatter(formatter)
 
@@ -119,10 +116,16 @@ GLOBAL_LIST_SYSTEM_DIRECTORIES = [
     "/var",
 ]
 
-def get_timestamp() -> str:
-    return datetime.now().isoformat(sep=" ")
-
 def load_avdat_version() -> str:
+    """
+    Load the AVDAT version from the specified file.
+
+    Returns:
+        str: The AVDAT version.
+    
+    Raises:
+        Exception: If the version file is not found.
+    """
     version_file_name = os.path.join(tmp_directory, avdat_version_file)
     version = "0000"
     logging.info(f"Loading: {version_file_name}")  
@@ -136,6 +139,20 @@ def load_avdat_version() -> str:
     return version
 
 def load_file(file_target: str, *, file_mode: str = "r") -> str:
+    """
+    Load the content of a file.
+
+    Args:
+        file_target (str): The path to the file.
+        file_mode (str, optional): The file mode to open the file in. Defaults to "r".
+
+    Returns:
+        str: The content of the file.
+
+    Raises:
+        None
+
+    """
     if not os.path.exists(file_target):
         logging.warn(f"File not found: {file_target}")
         return None
@@ -146,6 +163,15 @@ def load_file(file_target: str, *, file_mode: str = "r") -> str:
     return content
 
 def update_avdat_version(version: str="0000") -> bool:
+    """
+    Update the AVDAT version.
+
+    Args:
+        version (str): The AVDAT version to update. Defaults to "0000".
+
+    Returns:
+        bool: True if the version is successfully updated, False otherwise.
+    """
     version_file_name = os.path.join(tmp_directory, avdat_version_file)
     if not os.path.exists(version_file_name):
         if not os.path.isdir(tmp_directory):
@@ -178,6 +204,17 @@ def write_file(file_target: str, *, file_mode: str = "a", content_to_write: str 
     return wrote_file
 
 def initial_directory_setup(directory_path: str, initialize_directory: bool = True) -> bool:
+    """
+    Initializes the directory at the given path.
+
+    Args:
+        directory_path (str): The path of the directory to be initialized.
+        initialize_directory (bool, optional): Flag to indicate whether to initialize the directory. 
+            If set to False, the existing directory will not be deleted. Defaults to True.
+
+    Returns:
+        bool: True if the directory is successfully initialized, False otherwise.
+    """
     bool_complete = False
     try:
         if os.path.exists(directory_path):
@@ -224,7 +261,7 @@ def delete_directory(directory_path: str) -> bool:
     # guard rails so we dont delete system directories
     if is_system_directory(directory_path):
         logging.Error(f"Found system directory: {directory_path}")
-        raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, "System directory"))
+        raise OSError(f"Found system directory: {directory_path}")
     else:
         logging.debug(f"Not a system directory: {directory_path}")
         logging.info(f"Deleting: {directory_path}")
@@ -234,7 +271,7 @@ def delete_directory(directory_path: str) -> bool:
                 bool_complete = True
         except OSError as e:
             logging.error(f"Error: {directory_path} : {e.strerror}")
-            raise OSError("[%s] Error: %s : %s" % (get_timestamp(), directory_path, e.strerror))
+            raise OSError(f"Error: {directory_path} : {e.strerror}")
     return bool_complete
 
 def download_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> list:
@@ -363,7 +400,6 @@ def load_config():
     Returns:
         dict: The configuration.
     """
-    
     parse_config()
     
 def parse_config():
@@ -382,7 +418,9 @@ def parse_config():
         if not initial_directory_setup(tmp_directory, initialize_directory=False):
             logging.error(f"Something went wrong with tmp directory creation: {tmp_directory}")
             raise OSError(f"Something went wrong with tmp directory creation: {tmp_directory}") 
-        
+    
+    # see if theres a cache directory
+    # if not create it    
     if cache_directory:
         if not initial_directory_setup(cache_directory):
             logging.error(f"Directory creation failed: {cache_directory}")
