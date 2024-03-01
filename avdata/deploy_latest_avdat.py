@@ -295,23 +295,24 @@ def download_tar_files(soup: BeautifulSoup, downloads_directory: str, url) -> li
             # strip version off tarfile name
             logging.info(f"Found tarfile: {file}")   
             url_tarfile_version = file.split('-')[1].split('.')[0]
-            
             # if its our first file, set it as the file to download
             if current_version is None:
                 current_version = url_tarfile_version 
             proposed_version = url_tarfile_version
             
             # if we have a file to download, check if its newer than the current version
-            if url_tarfile_version <= last_avdat_version:
-                logging.info(f"AVDAT already downloaded")
+            if url_tarfile_version == last_avdat_version:
+                logging.info(f"AVDAT: {url_tarfile_version} already downloaded")
                 return files
-            else:
+            elif url_tarfile_version > last_avdat_version:
                 logging.info(f"New AVDAT version found: {file.split('-')[1].split('.')[0]}")
                 if proposed_version > current_version:
                     file_to_download = file
                     tarfile_download_path = "%s/%s" % (downloads_directory, file_to_download)
                     logging.debug(f"Added file to download: {url + file_to_download}")
-                    current_version = proposed_version    
+                    current_version = proposed_version
+            else:
+                logging.info(f"Older AVDAT version found: {file.split('-')[1].split('.')[0]}")    
     # add the tarfile to the list of files
     files.append(tarfile_download_path)
     
@@ -464,6 +465,7 @@ def main():
     # load the last avdat version
     last_version_downloaded = load_avdat_version()
     
+    
     #get soup object for the url
     soup = get_soup(tar_files_url)
     
@@ -480,6 +482,7 @@ def main():
     # if there are no tar files, exit
     if not list_tarfiles:
         logging.info(f"No new avdat version found")
+        logging.info(f"Completed.")
         return
     
     # find the latest tar file
