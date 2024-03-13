@@ -1,0 +1,21 @@
+[34m[2024-03-01 09:36:45,084] [32mINFO    [0m Initializing logging...[0m
+[34m[2024-03-01 09:36:45,084] [32mINFO    [0m Starting...[0m
+[34m[2024-03-01 09:36:45,084] [32mINFO    [0m Created: ./.tmp[0m
+[34m[2024-03-01 09:36:45,084] [32mINFO    [0m Found file: ./.tmp/latest_avdat.txt[0m
+[34m[2024-03-01 09:36:45,085] [32mINFO    [0m updated ./.tmp/latest_avdat.txt[0m
+[34m[2024-03-01 09:36:45,085] [32mINFO    [0m Created tmp directory: ./.tmp[0m
+[34m[2024-03-01 09:36:45,085] [32mINFO    [0m Found existing : ./.tmp[0m
+[34m[2024-03-01 09:36:45,085] [32mINFO    [0m Created: ./.cache[0m
+[34m[2024-03-01 09:36:45,085] [32mINFO    [0m Loading: ./.tmp/latest_avdat.txt[0m
+[34m[2024-03-01 09:36:45,085] [32mINFO    [0m Found file: ./.tmp/latest_avdat.txt[0m
+[34m[2024-03-01 09:36:45,085] [32mINFO    [0m loaded ./.tmp/latest_avdat.txt[0m
+[34m[2024-03-01 09:36:45,086] [36mDEBUG   [0m Starting new HTTPS connection (1): update.nai.com:443[0m
+[34m[2024-03-01 09:36:45,197] [36mDEBUG   [0m https://update.nai.com:443 "GET /products/datfiles/4.x/ HTTP/1.1" 200 802[0m
+[34m[2024-03-01 09:36:45,198] [32mINFO    [0m Using : https://update.nai.com/products/datfiles/4.x/[0m
+[34m[2024-03-01 09:36:45,198] [32mINFO    [0m Last avdat version downloaded: 0000[0m
+[34m[2024-03-01 09:36:45,198] [32mINFO    [0m Found tarfile: avvdat-10998.tar[0m
+[34m[2024-03-01 09:36:45,198] [32mINFO    [0m New AVDAT version found: 10998[0m
+[34m[2024-03-01 09:36:45,198] [32mINFO    [0m Found tarfile: avvdat-10999.tar[0m
+[34m[2024-03-01 09:36:45,198] [32mINFO    [0m New AVDAT version found: 10999[0m
+[34m[2024-03-01 09:36:45,198] [36mDEBUG   [0m Added file to download: https://update.nai.com/products/datfiles/4.x/avvdat-10999.tar[0m
+[34m[2024-03-01 09:36:45,199] [32mINFO    [0m Downloading tarfile: https://update.nai.com/products/datfiles/4.x/avvdat-10999.tar[0m
