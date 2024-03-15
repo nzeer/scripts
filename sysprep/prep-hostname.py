@@ -5,7 +5,7 @@ import configparser
 config = configparser.ConfigParser()
 
 # Read the configuration file
-config.read('config.ini')
+config.read('./config/config.ini')
 
 GLOBAL_CONFIG_HOSTNAME = {
     'hostname': config.get('hostname', 'hostname'),

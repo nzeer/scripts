@@ -7,7 +7,7 @@ import jinja2
 config = configparser.ConfigParser()
 
 # Read the configuration file
-config.read('config.ini')
+config.read('./config/config.ini')
 
 GLOBAL_CONFIG_RSYSLOG = {
     'rsyslog_path': config.get('rsyslog', 'rsyslog_path'),

@@ -8,7 +8,7 @@ import jinja2
 config = configparser.ConfigParser()
 
 # Read the configuration file
-config.read('config.ini')
+config.read('./config/config.ini')
 
 # Accessing the configuration variables
 GLOBAL_CONFIG = {

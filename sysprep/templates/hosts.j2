@@ -1,0 +1,12 @@
+# /etc/hosts template for RHEL 9
+# This is a Jinja template to dynamically generate the /etc/hosts file.
+# The `hosts` variable is expected to be a list of dictionaries,
+# each containing 'ip' and 'hostname' keys.
+
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+# Below are the custom hosts defined in your inventory.
+{% for host in hosts %}
+{{ host.ip }} {{ host.hostname }}
+{% endfor %}
