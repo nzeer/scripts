@@ -1,12 +1,6 @@
 echo "========================"
 echo "Beginning sysprep"
 echo "========================"
-echo "Disabling firewalld and fapolicyd."
-systemctl stop firewalld
-systemctl disable firewalld
-
-systemctl stop fapolicyd
-systemctl disable fapolicyd
 
 echo "Disabling SELinux."
 setenforce 0
