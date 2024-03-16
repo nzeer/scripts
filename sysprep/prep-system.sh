@@ -11,6 +11,7 @@ systemctl disable fapolicyd
 echo "Disabling SELinux."
 setenforce 0
 
+python3 ./prep-preinstall.py && echo "Preinstall complete."
 python3 ./prep-hostname.py && echo "Hostname configured."
 python3 ./prep-network. && echo "Network configured."
 python3 ./prep-splunk.py && echo "Splunk configured."
