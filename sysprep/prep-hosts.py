@@ -27,16 +27,20 @@ def write_template_to_file(template: jinja2.Template, output_file: str, rendered
     with open(output_file, 'w') as f:
         f.write(rendered_hosts)
     print(f"Rendered template has been written to '{output_file}'")
+    
+def load_hosts_list(hosts_list: str = GLOBAL_CONFIG_HOSTS['hosts_list_path']) -> dict:
+    hosts_inventory: dict = {"hosts": {}}
+    if not os.path.exists(hosts_list):
+        print(f"Hosts list file '{hosts_list}' does not exist")
+        return hosts_inventory
+    with open(hosts_list, 'r') as file:
+        hosts_inventory = yaml.safe_load(file)
+    return hosts_inventory
 
 def prep_hosts_file(hosts_path: str = GLOBAL_CONFIG_HOSTS['hosts_path'], 
                     hosts_jinja_template: str = GLOBAL_CONFIG_HOSTS['hosts_jinja_template'],
                     hosts_list: str = GLOBAL_CONFIG_HOSTS['hosts_list_path']):
-    if not os.path.exists(hosts_list):
-        raise FileNotFoundError(f"Hosts lists yaml file not found at '{hosts_list}'")
-    
-    # Load YAML content from a file
-    with open(hosts_list, 'r') as file:
-        hosts_inventory = yaml.safe_load(file)
+    hosts_inventory = load_hosts_list(hosts_list)
 
     # Load the Jinja template
     # Assuming your Jinja template is stored in a file named 'hosts_template.j2'
@@ -52,7 +56,6 @@ def prep_hosts_file(hosts_path: str = GLOBAL_CONFIG_HOSTS['hosts_path'],
     print(f"Hosts file has been configured")
     
 def main():
-    
     prep_hosts_file()
     
 if __name__ == "__main__":

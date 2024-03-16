@@ -1,6 +1,7 @@
 import shutil
 import os
 import configparser
+from turtle import back
 from jinja2 import Template
 import jinja2
 
@@ -23,6 +24,16 @@ GLOBAL_CONFIG = {
 def archive_folder(folder_to_archive: str = GLOBAL_CONFIG['folder_to_archive'], archive_path: str = GLOBAL_CONFIG['archive_path']):
     folder_name = folder_to_archive.split('/')[-1]
     backup_path = f"{archive_path}/{folder_name}.bak"
+    
+    # if the folder doesnt exist, create it.
+    if not os.path.exists(folder_to_archive):
+        print(f"Folder '{folder_to_archive}' does not exist")
+        os.makedirs(folder_to_archive)
+        print(f"Folder '{folder_to_archive}' has been created")
+    
+    if os.path.exists(backup_path):
+        shutil.rmtree(backup_path)
+        print(f"Folder '{backup_path}' already exists and has been removed")
     shutil.copytree(folder_to_archive, backup_path)
     print(f"Folder '{folder_name}' has been archived as '{backup_path}'")
     
