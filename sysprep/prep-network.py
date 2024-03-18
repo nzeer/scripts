@@ -38,7 +38,7 @@ def archive_folder(folder_to_archive: str = GLOBAL_CONFIG['folder_to_archive'], 
     print(f"Folder '{folder_name}' has been archived as '{backup_path}'")
     
 def restart_network_manager():
-    os.system("")
+    os.system(f"nmcli con load {GLOBAL_CONFIG['network_output_file']}")
     os.system("systemctl restart NetworkManager")
     
 def load_template(jinja_template_file: str) -> jinja2.Template:
