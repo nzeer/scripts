@@ -1,0 +1,94 @@
+
+# generate/fetche
+    run stig tool to generate reports
+    pull them all back
+
+# processor/exporter
+    process data and prepare to export
+
+    # export to 
+        database 
+        csv
+        jira
+        splunk
+        email
+
+# jira
+    using a dedicated jira board
+        # open a ticket for each item
+            cat 1
+            cat 2
+            cat 3+?
+        
+        assign to the correct person
+        add the correct labels
+
+# splunk
+    discuss what data
+    export to splunk
+    
+    create a dashboard
+    create alerts?
+    
+    gives us access to charting and graphing with a lot of flexibility and without me reinventing the wheel
+        overall health of the environment as pertains to stig compliance
+        week over week?
+        month over month?
+
+# email
+    # send out reports
+        weekly
+        monthly
+        quarterly
+        yearly
+    
+    # send out a report on demand 
+        specific 
+            date range
+            stig
+            host
+            environment
+            severity
+            status
+            category
+
+        ties into the web interface
+
+# web interface
+    # search for
+        specific host
+        stig
+        date range
+        severity
+        status
+        category
+        role
+        environment  
+    
+    # generate report for
+        host
+        stig
+        date range
+        severity
+        status
+        category
+        role
+        environment
+    
+    # export to
+        csv
+        database
+        jira
+        splunk
+        email
+
+# database
+    # store all data
+        gives us the advantage of being able to query the data in a lot of different ways
+        gives us the ability to store the data for an extended period and in a way that is easily accessible to everything proposed
+
+    # ties into
+        web interface
+        importer
+        processor/exporter
+        email
