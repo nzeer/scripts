@@ -1,4 +1,7 @@
+"""==================================================================
+Author: Robert Jackson
 # Import the os and subprocess modules
+====================================================================="""
 import os
 import subprocess
 import sys
