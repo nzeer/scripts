@@ -1,0 +1,115 @@
+---
+- name: Gather and store host facts
+  hosts: all
+  gather_facts: true
+  become: false
+  strategy: free
+  ignore_unreachable: true
+  tasks:
+    - name: Store operating system information
+      ansible.builtin.set_fact:
+        os_info:
+          distribution: "{{ ansible_distribution }}"
+          major_version: "{{ ansible_distribution_major_version }}"
+          minor_version: >-
+            {{
+              (ansible_distribution_version.split('.')[1])
+              if '.' in ansible_distribution_version
+              else '0'
+            }}
+          full_version: "{{ ansible_distribution_version }}"
+        fqdn: "{{ ansible_fqdn }}"
+        cacheable: true
+      register: test_facts
+    - name: Build IPv4 and MAC address mapping
+      ansible.builtin.set_fact:
+        ip_mac_addresses: >-
+          {%- set ns = namespace(items=[]) -%}
+          {%- for iface in ansible_interfaces | default([]) -%}
+            {%- set iface_facts = hostvars[inventory_hostname]['ansible_' ~ iface] | default({}) -%}
+            {%- set mac = iface_facts.macaddress | default('') | lower -%}
+            {%- if mac
+                  and iface != 'lo'
+                  and not iface.startswith('docker')
+                  and not iface.startswith('br-')
+                  and not iface.startswith('veth') -%}
+              {%- if iface_facts.ipv4 is defined -%}
+                {%- set ip = iface_facts.ipv4.address | default('') -%}
+                {%- if ip
+                      and not ip.startswith('127.')
+                      and not ip.startswith('172.17.') -%}
+                  {%- set _ = ns.items.append({
+                    'mac': mac,
+                    'ip': ip
+                  }) -%}
+                {%- endif -%}
+              {%- endif -%}
+              {%- for address in iface_facts.ipv4_secondaries | default([]) -%}
+                {%- set ip = address.address | default('') -%}
+                {%- if ip
+                      and not ip.startswith('127.')
+                      and not ip.startswith('172.17.') -%}
+                  {%- set _ = ns.items.append({
+                    'mac': mac,
+                    'ip': ip
+                  }) -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ ns.items }}
+        cacheable: true
+    - name: Read /etc/humangroups
+      ansible.builtin.slurp:
+        src: /etc/humangroups
+      register: humangroups_file
+      failed_when: false
+      changed_when: false
+    - name: Store local role information
+      ansible.builtin.set_fact:
+        localroleinfo: >-
+          {{
+            humangroups_file.content
+            | default('')
+            | b64decode
+            | trim
+          }}
+        cacheable: true
+    - name: Build structured host record
+      ansible.builtin.set_fact:
+        host_record:
+          hostname: "{{ ansible_hostname.split('.')[0] }}"
+          fqdn: "{{ fqdn }}"
+          os_info: "{{ os_info }}"
+          ip_mac_addresses: "{{ ip_mac_addresses }}"
+          localroleinfo: "{{ localroleinfo }}"
+    - name: Display collected facts
+      ansible.builtin.debug:
+        var: host_record
+    - name: Ensure host output directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/hosts"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+    - name: Save all facts to host-specific YAML file
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/hosts/{{ ansible_hostname.split('.')[0] }}"
+        content: "{{ host_record | to_nice_yaml(indent=2, sort_keys=false) }}"
+        mode: "0644"
+      delegate_to: localhost
+    - name: Ensure master output directory exists
+      ansible.builtin.file:
+        path: /ansible/csv
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+    - name: Save all facts to master JSON-lines file
+      ansible.builtin.lineinfile:
+        path: /ansible/csv/hosts.csv
+        create: true
+        line: "{{ host_record | to_json }}"
+        state: present
+        mode: "0644"
+      when: test_facts is defined
+      delegate_to: localhost

@@ -1,0 +1,74 @@
+2026-08-26 11:33:30,167 [INFO] ========================================================================
+2026-08-26 11:33:30,167 [INFO] Starting inventory generation
+2026-08-26 11:33:30,167 [INFO] Working directory: /home/rjackson/dynamic_inventory_live_dev
+2026-08-26 11:33:30,167 [INFO] ========================================================================
+2026-08-26 11:33:30,167 [INFO] Starting stage: Network discovery
+2026-08-26 11:33:30,167 [INFO] Command: /usr/bin/python /home/rjackson/dynamic_inventory_live_dev/scan.py
+2026-08-26 11:57:25,471 [INFO] Completed stage: Network discovery [rc=0, 1435.30s]
+2026-08-26 11:57:25,472 [INFO] Discovery produced 2 JSON host file(s).
+2026-08-26 11:57:25,473 [INFO] ========================================================================
+2026-08-26 11:57:25,473 [INFO] Starting stage: Build discovery inventory
+2026-08-26 11:57:25,473 [INFO] Command: /usr/bin/python /home/rjackson/dynamic_inventory_live_dev/json2yaml.py
+2026-08-26 11:57:25,530 [INFO] Completed stage: Build discovery inventory [rc=0, 0.06s]
+2026-08-26 11:57:25,530 [INFO] Generated discovery inventory contains 512 IP address(es).
+2026-08-26 11:57:25,530 [INFO] ========================================================================
+2026-08-26 11:57:25,530 [INFO] Starting stage: Gather host facts
+2026-08-26 11:57:25,530 [INFO] Command: ansible-playbook -i /home/rjackson/dynamic_inventory_live_dev/inventory /home/rjackson/dynamic_inventory_live_dev/gather_facts.yml
+2026-08-26 11:57:27,483 [WARNING] Inventory generation interrupted.
+2026-08-26 11:59:04,721 [INFO] ========================================================================
+2026-08-26 11:59:04,721 [INFO] Starting inventory generation
+2026-08-26 11:59:04,721 [INFO] Working directory: /home/rjackson/dynamic_inventory_live_dev
+2026-08-26 11:59:04,722 [INFO] ========================================================================
+2026-08-26 11:59:04,722 [INFO] Starting stage: Network discovery
+2026-08-26 11:59:04,722 [INFO] Command: /usr/bin/python /home/rjackson/dynamic_inventory_live_dev/scan.py
+2026-08-26 11:59:09,730 [WARNING] Inventory generation interrupted.
+2026-08-26 12:00:02,313 [INFO] ========================================================================
+2026-08-26 12:00:02,313 [INFO] Starting inventory generation
+2026-08-26 12:00:02,313 [INFO] Working directory: /home/rjackson/dynamic_inventory_live_dev
+2026-08-26 12:00:02,315 [INFO] ========================================================================
+2026-08-26 12:00:02,315 [INFO] Starting stage: Network discovery
+2026-08-26 12:00:02,315 [INFO] Command: /usr/bin/python /home/rjackson/dynamic_inventory_live_dev/scan.py
+2026-08-26 12:09:05,625 [INFO] Completed stage: Network discovery [rc=0, 543.31s]
+2026-08-26 12:09:05,626 [INFO] Waiting for 2 nmap scan result file(s).
+2026-08-26 12:09:11,646 [INFO] Discovery complete: 2/2 scan results are present, valid, and stable.
+2026-08-26 12:09:11,646 [INFO] ========================================================================
+2026-08-26 12:09:11,646 [INFO] Starting stage: Build discovery inventory
+2026-08-26 12:09:11,646 [INFO] Command: /usr/bin/python /home/rjackson/dynamic_inventory_live_dev/json2yaml.py
+2026-08-26 12:09:11,693 [INFO] Completed stage: Build discovery inventory [rc=0, 0.05s]
+2026-08-26 12:09:11,694 [INFO] Generated discovery inventory contains 512 IP address(es).
+2026-08-26 12:09:11,694 [INFO] ========================================================================
+2026-08-26 12:09:11,694 [INFO] Starting stage: Gather host facts
+2026-08-26 12:09:11,694 [INFO] Command: ansible-playbook -i /home/rjackson/dynamic_inventory_live_dev/inventory /home/rjackson/dynamic_inventory_live_dev/gather_facts.yml
+2026-08-26 12:11:52,050 [WARNING] Stage returned non-zero: Gather host facts [rc=2, 160.36s] -- continuing
+2026-08-26 12:11:52,052 [INFO] Fact collection produced 129 fact file(s).
+2026-08-26 12:11:52,052 [WARNING] Ansible returned rc=2. This does not automatically indicate inventory generation failure because some discovered hosts may be unreachable or may not provide SSH.
+2026-08-26 12:11:52,052 [INFO] ========================================================================
+2026-08-26 12:11:52,052 [INFO] Starting publish stages in parallel.
+2026-08-26 12:11:52,052 [INFO] ========================================================================
+2026-08-26 12:11:52,052 [INFO] Starting stage: Generate Ansible inventory
+2026-08-26 12:11:52,052 [INFO] Command: /usr/bin/python /home/rjackson/dynamic_inventory_live_dev/parse.py
+2026-08-26 12:11:52,053 [INFO] ========================================================================
+2026-08-26 12:11:52,054 [INFO] Starting stage: Load inventory database
+2026-08-26 12:11:52,054 [INFO] Command: /usr/bin/python /home/rjackson/dynamic_inventory_live_dev/load_inventory_db.py --inventory /home/rjackson/dynamic_inventory_live_dev/inventory --facts-dir /home/rjackson/dynamic_inventory_live_dev/hosts --config /home/rjackson/dynamic_inventory_live_dev/inventory-db.ini --workers 10
+2026-08-26 12:11:52,311 [INFO] Completed stage: Generate Ansible inventory [rc=0, 0.26s]
+2026-08-26 12:11:53,370 [INFO] Completed stage: Load inventory database [rc=0, 1.32s]
+2026-08-26 12:11:53,370 [INFO] ========================================================================
+2026-08-26 12:11:53,370 [INFO] Querying database inventory statistics.
+2026-08-26 12:11:53,382 [INFO] Database discovery statistics: discovered=512, with_facts=174, discovery_only=338
+2026-08-26 12:11:53,382 [INFO] ========================================================================
+2026-08-26 12:11:53,382 [INFO] Inventory generation summary
+2026-08-26 12:11:53,382 [INFO] ========================================================================
+2026-08-26 12:11:53,382 [INFO] Discovery JSON files : 2
+2026-08-26 12:11:53,382 [INFO] Inventory IPs        : 512
+2026-08-26 12:11:53,382 [INFO] Fact files created   : 129
+2026-08-26 12:11:53,383 [INFO] Ansible return code  : 2
+2026-08-26 12:11:53,383 [INFO] ------------------------------------------------------------------------
+2026-08-26 12:11:53,383 [INFO] DB discovered IPs  : 512
+2026-08-26 12:11:53,383 [INFO] DB with facts      : 174
+2026-08-26 12:11:53,383 [INFO] DB discovery-only  : 338
+2026-08-26 12:11:53,383 [INFO] ------------------------------------------------------------------------
+2026-08-26 12:11:53,383 [INFO] Generate Ansible inventory: rc=0
+2026-08-26 12:11:53,383 [INFO] Load inventory database : rc=0
+2026-08-26 12:11:53,383 [INFO] Total runtime        : 711.07s
+2026-08-26 12:11:53,383 [INFO] ========================================================================
+2026-08-26 12:11:53,383 [INFO] Inventory generation completed successfully.

@@ -1,0 +1,6 @@
+[tcreg:children]
+tdpdm1
+all-splunk-app-ops-09
+
+[tdpdm1]
+[all-splunk-app-ops-09]

@@ -1,0 +1,10 @@
+[teamc:children]
+pdm-gateway-app-beta-09
+pdm-pac-app-prod-09
+
+
+[pdm-gateway-app-beta-09]
+10.1.1.232
+
+[pdm-pac-app-prod-09]
+10.1.1.228

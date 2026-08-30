@@ -1,0 +1,12 @@
+---
+plugin: nmap
+address: 10.1.1.0/24
+strict: false
+ipv4: yes
+ipv6: no
+ports: yes
+icmp_timestamp: true
+sudo: false
+groups:
+  without_hostname: "'10.1' in name"
+  with_ssh: "ports | selectattr('service', 'equalto', 'ssh')"

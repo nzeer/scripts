@@ -1,0 +1,13 @@
+[tomcats:children]
+tcreg
+teamc
+teamc2
+
+[tomcats:vars]
+ansible_pipelining=true
+
+
+[tcreg]
+[teamc]
+[teamc2]
+
