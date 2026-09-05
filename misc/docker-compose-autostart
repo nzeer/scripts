@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BASE_DIR="/opt/docker/compose/autostart"
+
+###############################################################################
+# Sanity checks
+###############################################################################
+
+if [[ ! -d "$BASE_DIR" ]]; then
+    echo "ERROR: Autostart directory does not exist: $BASE_DIR" >&2
+    exit 1
+fi
+
+if ! command -v docker &>/dev/null; then
+    echo "ERROR: docker command not found." >&2
+    exit 1
+fi
+
+if ! docker compose version &>/dev/null; then
+    echo "ERROR: Docker Compose plugin is not available." >&2
+    exit 1
+fi
+
+###############################################################################
+# Discover Compose files
+#
+# -L causes find to follow symbolic links.
+#
+# Supported filenames:
+#
+#   compose.yml
+#   compose.yaml
+#   docker-compose.yml
+#   docker-compose.yaml
+#
+###############################################################################
+
+mapfile -d '' COMPOSE_FILES < <(
+    find -L "$BASE_DIR" \
+        -type f \
+        \( \
+            -name '*compose.yml' \
+	    -o -name '*compose.yaml' \
+            -o -name 'docker-compose.yml' \
+            -o -name 'docker-compose.yaml' \
+        \) \
+        -print0 2>/dev/null |
+        sort -z
+)
+
+###############################################################################
+# Make sure we found something
+###############################################################################
+
+if (( ${#COMPOSE_FILES[@]} == 0 )); then
+    echo "No Docker Compose files found under: $BASE_DIR"
+    exit 0
+fi
+
+echo "Found ${#COMPOSE_FILES[@]} Docker Compose project(s)."
+
+###############################################################################
+# Actions
+###############################################################################
+
+case "${1:-}" in
+
+    start)
+        echo "Starting Docker Compose projects..."
+
+        for compose_file in "${COMPOSE_FILES[@]}"; do
+            compose_dir="$(dirname "$compose_file")"
+
+            echo
+            echo "================================================================"
+            echo "Starting: $compose_file"
+            echo "================================================================"
+
+            (
+                cd "$compose_dir"
+                docker compose -f "$compose_file" up -d
+            )
+        done
+
+        echo
+        echo "All Docker Compose projects started."
+        ;;
+
+    stop)
+        echo "Stopping Docker Compose projects..."
+
+        # Stop projects in reverse order from how they were started.
+        for (( i=${#COMPOSE_FILES[@]}-1; i>=0; i-- )); do
+            compose_file="${COMPOSE_FILES[$i]}"
+            compose_dir="$(dirname "$compose_file")"
+
+            echo
+            echo "================================================================"
+            echo "Stopping: $compose_file"
+            echo "================================================================"
+
+            (
+                cd "$compose_dir"
+                docker compose -f "$compose_file" down
+            )
+        done
+
+        echo
+        echo "All Docker Compose projects stopped."
+        ;;
+
+    restart)
+        echo "Restarting Docker Compose projects..."
+
+        # Stop in reverse order.
+        for (( i=${#COMPOSE_FILES[@]}-1; i>=0; i-- )); do
+            compose_file="${COMPOSE_FILES[$i]}"
+            compose_dir="$(dirname "$compose_file")"
+
+            echo
+            echo "Stopping: $compose_file"
+
+            (
+                cd "$compose_dir"
+                docker compose -f "$compose_file" down
+            )
+        done
+
+        # Start in normal order.
+        for compose_file in "${COMPOSE_FILES[@]}"; do
+            compose_dir="$(dirname "$compose_file")"
+
+            echo
+            echo "Starting: $compose_file"
+
+            (
+                cd "$compose_dir"
+                docker compose -f "$compose_file" up -d
+            )
+        done
+
+        echo
+        echo "All Docker Compose projects restarted."
+        ;;
+
+    status)
+        echo "Docker Compose projects under $BASE_DIR:"
+        echo
+
+        for compose_file in "${COMPOSE_FILES[@]}"; do
+            compose_dir="$(dirname "$compose_file")"
+
+            echo
+            echo "================================================================"
+            echo "$compose_file"
+            echo "================================================================"
+
+            (
+                cd "$compose_dir"
+                docker compose -f "$compose_file" ps
+            )
+        done
+        ;;
+
+    list)
+        printf '%s\n' "${COMPOSE_FILES[@]}"
+        ;;
+
+    *)
+        echo "Usage: $(basename "$0") {start|stop|restart|status|list}" >&2
+        exit 1
+        ;;
+
+esac
