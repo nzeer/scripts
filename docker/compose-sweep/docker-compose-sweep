@@ -1,0 +1,334 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+PROGRAM="${0##*/}"
+VERSION="1.0.0"
+
+COMPOSE_ROOT="/opt/docker/compose"
+MODE="pull"
+DRY_RUN=0
+QUIET=0
+
+# ---------- colors ----------
+if [[ -t 1 ]]; then
+    RED=$'\033[0;31m'
+    GREEN=$'\033[0;32m'
+    YELLOW=$'\033[0;33m'
+    BLUE=$'\033[0;34m'
+    BOLD=$'\033[1m'
+    RESET=$'\033[0m'
+else
+    RED=""
+    GREEN=""
+    YELLOW=""
+    BLUE=""
+    BOLD=""
+    RESET=""
+fi
+
+usage() {
+    cat <<EOF
+Usage:
+  $PROGRAM [OPTIONS]
+
+Modes:
+  --pull              Validate and pull images only (default)
+  --update            Validate, pull, then run:
+                      docker compose up -d --remove-orphans
+  --check             Validate compose files only
+
+Options:
+  -r, --root DIR      Compose root directory
+                      Default: $COMPOSE_ROOT
+  -n, --dry-run       Show what would be executed
+  -q, --quiet         Reduce normal output
+  -h, --help          Show this help
+  -V, --version       Show version
+
+Examples:
+  $PROGRAM
+  $PROGRAM --pull
+  $PROGRAM --update
+  $PROGRAM --check
+  $PROGRAM --dry-run --update
+  $PROGRAM --root /srv/docker/compose --pull
+EOF
+}
+
+log() {
+    (( QUIET )) || printf '%s\n' "$*"
+}
+
+info() {
+    log "${BLUE}[INFO]${RESET} $*"
+}
+
+warn() {
+    printf '%s\n' "${YELLOW}[WARN]${RESET} $*" >&2
+}
+
+error() {
+    printf '%s\n' "${RED}[ERROR]${RESET} $*" >&2
+}
+
+ok() {
+    log "${GREEN}[OK]${RESET} $*"
+}
+
+run_cmd() {
+    if (( DRY_RUN )); then
+        printf '%s' "${YELLOW}[DRY-RUN]${RESET}"
+        printf ' %q' "$@"
+        printf '\n'
+        return 0
+    fi
+
+    "$@"
+}
+
+# ---------- argument parsing ----------
+while (( $# > 0 )); do
+    case "$1" in
+        --pull)
+            MODE="pull"
+            shift
+            ;;
+        --update)
+            MODE="update"
+            shift
+            ;;
+        --check)
+            MODE="check"
+            shift
+            ;;
+        -r|--root)
+            if (( $# < 2 )); then
+                error "$1 requires a directory argument"
+                exit 2
+            fi
+            COMPOSE_ROOT="$2"
+            shift 2
+            ;;
+        -n|--dry-run)
+            DRY_RUN=1
+            shift
+            ;;
+        -q|--quiet)
+            QUIET=1
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -V|--version)
+            echo "$PROGRAM $VERSION"
+            exit 0
+            ;;
+        *)
+            error "Unknown option: $1"
+            usage >&2
+            exit 2
+            ;;
+    esac
+done
+
+# ---------- preflight ----------
+if ! command -v docker >/dev/null 2>&1; then
+    error "docker not found in PATH"
+    exit 127
+fi
+
+if ! docker compose version >/dev/null 2>&1; then
+    error "'docker compose' plugin is not available"
+    exit 127
+fi
+
+if [[ ! -d "$COMPOSE_ROOT" ]]; then
+    error "Compose root does not exist: $COMPOSE_ROOT"
+    exit 1
+fi
+
+# Find candidate compose files, then deduplicate by directory.
+declare -A SEEN_DIRS=()
+STACK_DIRS=()
+
+while IFS= read -r -d '' compose_file; do
+    stack_dir="$(dirname "$compose_file")"
+
+    if [[ -z "${SEEN_DIRS[$stack_dir]+x}" ]]; then
+        SEEN_DIRS["$stack_dir"]=1
+        STACK_DIRS+=("$stack_dir")
+    fi
+done < <(
+    find "$COMPOSE_ROOT" \
+        -type f \
+        \( -name 'compose.yml' \
+        -o -name 'compose.yaml' \
+        -o -name 'docker-compose.yml' \
+        -o -name 'docker-compose.yaml' \) \
+        -print0 |
+    sort -z
+)
+
+if (( ${#STACK_DIRS[@]} == 0 )); then
+    warn "No compose files found under: $COMPOSE_ROOT"
+    exit 0
+fi
+
+printf '%s\n' "${BOLD}Docker Compose Stack Sweep${RESET}"
+printf 'Root:   %s\n' "$COMPOSE_ROOT"
+printf 'Mode:   %s\n' "$MODE"
+printf 'Stacks: %d\n' "${#STACK_DIRS[@]}"
+(( DRY_RUN )) && printf 'DryRun: yes\n'
+printf '\n'
+
+# ---------- counters / result storage ----------
+TOTAL=0
+PASSED=0
+FAILED=0
+SKIPPED=0
+
+declare -a RESULT_STACK=()
+declare -a RESULT_STATUS=()
+declare -a RESULT_DETAIL=()
+
+record_result() {
+    RESULT_STACK+=("$1")
+    RESULT_STATUS+=("$2")
+    RESULT_DETAIL+=("$3")
+}
+
+# ---------- stack processing ----------
+for stack_dir in "${STACK_DIRS[@]}"; do
+    ((TOTAL+=1))
+
+    stack_name="${stack_dir#"$COMPOSE_ROOT"/}"
+    [[ "$stack_name" == "$stack_dir" ]] && stack_name="$(basename "$stack_dir")"
+
+    printf '%s\n' "${BOLD}================================================================${RESET}"
+    printf ' Stack: %s\n' "$stack_name"
+    printf ' Path:  %s\n' "$stack_dir"
+    printf '%s\n' "${BOLD}================================================================${RESET}"
+
+    pushd "$stack_dir" >/dev/null || {
+        error "Cannot enter $stack_dir"
+        ((FAILED+=1))
+        record_result "$stack_name" "FAILED" "cannot enter directory"
+        printf '\n'
+        continue
+    }
+
+    # Validate exactly the same compose project Docker will use from this dir.
+    if (( DRY_RUN )); then
+        run_cmd docker compose config --quiet
+        validate_rc=0
+    else
+        docker compose config --quiet
+        validate_rc=$?
+    fi
+
+    if (( validate_rc != 0 )); then
+        error "$stack_name: compose validation failed"
+        ((FAILED+=1))
+        record_result "$stack_name" "FAILED" "compose validation"
+        popd >/dev/null
+        printf '\n'
+        continue
+    fi
+
+    ok "$stack_name: compose config valid"
+
+    case "$MODE" in
+        check)
+            ((PASSED+=1))
+            record_result "$stack_name" "OK" "validated"
+            ;;
+
+        pull)
+            if run_cmd docker compose pull; then
+                ok "$stack_name: images pulled"
+                ((PASSED+=1))
+                record_result "$stack_name" "OK" "pulled"
+            else
+                error "$stack_name: pull failed"
+                ((FAILED+=1))
+                record_result "$stack_name" "FAILED" "pull"
+            fi
+            ;;
+
+        update)
+            if ! run_cmd docker compose pull; then
+                error "$stack_name: pull failed; not running compose up"
+                ((FAILED+=1))
+                record_result "$stack_name" "FAILED" "pull"
+                popd >/dev/null
+                printf '\n'
+                continue
+            fi
+
+            ok "$stack_name: images pulled"
+
+            if run_cmd docker compose up -d --remove-orphans; then
+                ok "$stack_name: stack updated"
+                ((PASSED+=1))
+                record_result "$stack_name" "OK" "updated"
+            else
+                error "$stack_name: compose up failed"
+                ((FAILED+=1))
+                record_result "$stack_name" "FAILED" "compose up"
+            fi
+            ;;
+    esac
+
+    popd >/dev/null
+    printf '\n'
+done
+
+# ---------- summary ----------
+printf '%s\n' "${BOLD}Summary${RESET}"
+printf '%-36s %-10s %s\n' "STACK" "STATUS" "DETAIL"
+printf '%-36s %-10s %s\n' "------------------------------------" "----------" "----------------"
+
+for i in "${!RESULT_STACK[@]}"; do
+    stack="${RESULT_STACK[$i]}"
+    status="${RESULT_STATUS[$i]}"
+    detail="${RESULT_DETAIL[$i]}"
+
+    case "$status" in
+        OK)
+            status_fmt="${GREEN}${status}${RESET}"
+            ;;
+        FAILED)
+            status_fmt="${RED}${status}${RESET}"
+            ;;
+        *)
+            status_fmt="${YELLOW}${status}${RESET}"
+            ;;
+    esac
+
+    printf '%-36s ' "$stack"
+    printf '%b' "$status_fmt"
+
+    # Compensate visually for ANSI escapes when attached to a terminal.
+    if [[ -t 1 ]]; then
+        printf '%*s' $((10 - ${#status})) ""
+    else
+        printf '%*s' $((10 - ${#status})) ""
+    fi
+
+    printf ' %s\n' "$detail"
+done
+
+printf '\n'
+printf 'Total:  %d\n' "$TOTAL"
+printf 'OK:     %d\n' "$PASSED"
+printf 'Failed: %d\n' "$FAILED"
+
+if (( FAILED > 0 )); then
+    exit 1
+fi
+
+exit 0
+
