@@ -4,7 +4,7 @@ set -u
 set -o pipefail
 
 PROGRAM="${0##*/}"
-VERSION="1.2.0"
+VERSION="1.1.0"
 
 ROOT="/repos"
 MODE="pull"
@@ -18,32 +18,6 @@ declare -a RESULT_NAMES=()
 declare -a RESULT_BRANCHES=()
 declare -a RESULT_STATES=()
 declare -a RESULT_DETAILS=()
-
-
-# ---------------------------------------------------------------------------
-# Terminal colors
-# ---------------------------------------------------------------------------
-
-if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
-    COLOR_RESET=$'\033[0m'
-    COLOR_GREEN=$'\033[32m'
-    COLOR_YELLOW=$'\033[33m'
-    COLOR_RED=$'\033[31m'
-    COLOR_CYAN=$'\033[36m'
-    COLOR_BOLD=$'\033[1m'
-else
-    COLOR_RESET=""
-    COLOR_GREEN=""
-    COLOR_YELLOW=""
-    COLOR_RED=""
-    COLOR_CYAN=""
-    COLOR_BOLD=""
-fi
-
-
-# ---------------------------------------------------------------------------
-# Help / version
-# ---------------------------------------------------------------------------
 
 usage() {
     cat <<EOF
@@ -64,9 +38,6 @@ Options:
   -v, --verbose         Show additional information
   -V, --version         Show version
   -h, --help            Show this help
-
-Environment:
-  NO_COLOR              Disable ANSI color output
 
 Examples:
   $PROGRAM
@@ -97,11 +68,6 @@ show_version() {
     printf '%s %s\n' "$PROGRAM" "$VERSION"
 }
 
-
-# ---------------------------------------------------------------------------
-# Utility functions
-# ---------------------------------------------------------------------------
-
 log() {
     printf '%s\n' "$*"
 }
@@ -126,14 +92,8 @@ run_cmd() {
     "$@"
 }
 
-
-# ---------------------------------------------------------------------------
-# Repository helpers
-# ---------------------------------------------------------------------------
-
 repo_name() {
     local repo="$1"
-
     basename "$repo"
 }
 
@@ -185,18 +145,12 @@ record_result() {
     RESULT_DETAILS+=("$4")
 }
 
-
-# ---------------------------------------------------------------------------
-# Repository discovery
-# ---------------------------------------------------------------------------
-
 discover_repos() {
     local root="$1"
 
     REPOS=()
 
     if (( RECURSIVE )); then
-
         while IFS= read -r -d '' git_marker; do
             local repo
 
@@ -215,20 +169,16 @@ discover_repos() {
                 -name .git \
                 -print0 2>/dev/null
         )
-
     else
-
         local dir
 
         while IFS= read -r -d '' dir; do
-
             if git -C "$dir" \
                 rev-parse \
                 --is-inside-work-tree >/dev/null 2>&1
             then
                 REPOS+=("${dir%/}")
             fi
-
         done < <(
             find "$root" \
                 -mindepth 1 \
@@ -236,24 +186,16 @@ discover_repos() {
                 -type d \
                 -print0
         )
-
     fi
 
     if ((${#REPOS[@]})); then
-
         mapfile -t REPOS < <(
             printf '%s\n' "${REPOS[@]}" |
                 awk '!seen[$0]++' |
                 sort
         )
-
     fi
 }
-
-
-# ---------------------------------------------------------------------------
-# Sequential repository processing
-# ---------------------------------------------------------------------------
 
 process_repo() {
     local repo="$1"
@@ -271,7 +213,6 @@ process_repo() {
     printf ' Repo:   %s\n' "$repo"
 
     if [[ -z "$branch" ]]; then
-
         printf ' Branch: DETACHED\n'
         printf '================================================================\n'
         printf '[SKIP] Detached HEAD\n'
@@ -288,66 +229,46 @@ process_repo() {
     printf ' Branch: %s\n' "$branch"
 
     if repo_has_upstream "$repo"; then
-
         upstream="$(repo_upstream "$repo")"
-
         printf ' Track:  %s\n' "$upstream"
-
     else
-
         upstream=""
-
         printf ' Track:  none\n'
-
     fi
 
     if repo_is_dirty "$repo"; then
-
         dirty=1
-
         printf ' Status: dirty\n'
-
     else
-
         printf ' Status: clean\n'
-
     fi
 
     printf '================================================================\n'
 
     case "$MODE" in
-
         fetch)
-
             if run_cmd \
                 git -C "$repo" \
                 fetch \
                 --all \
                 --prune
             then
-
                 if (( dirty )); then
-
                     record_result \
                         "$name" \
                         "$branch" \
                         "DIRTY" \
                         "fetched; local changes present"
-
                 else
-
                     record_result \
                         "$name" \
                         "$branch" \
                         "OK" \
                         "fetched"
-
                 fi
 
                 return 0
-
             else
-
                 record_result \
                     "$name" \
                     "$branch" \
@@ -355,15 +276,11 @@ process_repo() {
                     "fetch failed"
 
                 return 1
-
             fi
             ;;
 
-
         pull)
-
             if [[ -z "$upstream" ]]; then
-
                 printf '[SKIP] No upstream configured for %s\n' "$branch"
 
                 record_result \
@@ -373,7 +290,6 @@ process_repo() {
                     "no upstream"
 
                 return 0
-
             fi
 
             if run_cmd \
@@ -381,29 +297,22 @@ process_repo() {
                 pull \
                 --ff-only
             then
-
                 if (( dirty )); then
-
                     record_result \
                         "$name" \
                         "$branch" \
                         "DIRTY" \
                         "updated/current; local changes present"
-
                 else
-
                     record_result \
                         "$name" \
                         "$branch" \
                         "OK" \
                         "updated/current"
-
                 fi
 
                 return 0
-
             else
-
                 record_result \
                     "$name" \
                     "$branch" \
@@ -411,15 +320,11 @@ process_repo() {
                     "pull --ff-only failed"
 
                 return 1
-
             fi
             ;;
 
-
         rebase)
-
             if [[ -z "$upstream" ]]; then
-
                 printf '[SKIP] No upstream configured for %s\n' "$branch"
 
                 record_result \
@@ -429,11 +334,9 @@ process_repo() {
                     "no upstream"
 
                 return 0
-
             fi
 
             if (( dirty )); then
-
                 printf '[SKIP] Dirty repository; refusing automatic rebase\n'
 
                 record_result \
@@ -443,7 +346,6 @@ process_repo() {
                     "rebase skipped; local changes present"
 
                 return 0
-
             fi
 
             if run_cmd \
@@ -451,7 +353,6 @@ process_repo() {
                 pull \
                 --rebase
             then
-
                 record_result \
                     "$name" \
                     "$branch" \
@@ -459,9 +360,7 @@ process_repo() {
                     "rebased/current"
 
                 return 0
-
             else
-
                 record_result \
                     "$name" \
                     "$branch" \
@@ -469,17 +368,10 @@ process_repo() {
                     "pull --rebase failed"
 
                 return 1
-
             fi
             ;;
-
     esac
 }
-
-
-# ---------------------------------------------------------------------------
-# Parallel fetch worker
-# ---------------------------------------------------------------------------
 
 process_fetch_parallel_worker() {
     local repo="$1"
@@ -496,8 +388,7 @@ process_fetch_parallel_worker() {
     name="$(repo_name "$repo")"
     branch="$(repo_branch "$repo")"
 
-    [[ -z "$branch" ]] &&
-        branch="DETACHED"
+    [[ -z "$branch" ]] && branch="DETACHED"
 
     if repo_is_dirty "$repo"; then
         dirty=1
@@ -518,7 +409,6 @@ process_fetch_parallel_worker() {
         printf '================================================================\n'
 
         if (( DRY_RUN )); then
-
             printf '[DRY-RUN] git -C %q fetch --all --prune\n' "$repo"
 
             if (( dirty )); then
@@ -540,11 +430,9 @@ process_fetch_parallel_worker() {
             detail="fetched"
 
         else
-
             state="FAILED"
             detail="fetch failed"
             rc=1
-
         fi
 
         printf '%s\t%s\t%s\t%s\n' \
@@ -559,14 +447,8 @@ process_fetch_parallel_worker() {
     return "$rc"
 }
 
-
-# ---------------------------------------------------------------------------
-# Parallel fetch controller
-# ---------------------------------------------------------------------------
-
 process_fetch_parallel() {
     local result_dir
-
     result_dir="$(mktemp -d)"
 
     local -a pids=()
@@ -578,7 +460,6 @@ process_fetch_parallel() {
     local any_failed=0
 
     for repo in "${REPOS[@]}"; do
-
         process_fetch_parallel_worker \
             "$repo" \
             "$result_dir" \
@@ -592,32 +473,25 @@ process_fetch_parallel() {
         ((idx += 1))
 
         if (( running >= JOBS )); then
-
             local i
 
             for i in "${!pids[@]}"; do
-
                 if ! wait "${pids[$i]}"; then
                     any_failed=1
                 fi
-
             done
 
             pids=()
             running=0
-
         fi
-
     done
 
     local i
 
     for i in "${!pids[@]}"; do
-
         if ! wait "${pids[$i]}"; then
             any_failed=1
         fi
-
     done
 
     local total="${#REPOS[@]}"
@@ -629,7 +503,6 @@ process_fetch_parallel() {
         fi
 
         if [[ -f "$result_dir/$i.result" ]]; then
-
             local name
             local branch
             local state
@@ -647,20 +520,13 @@ process_fetch_parallel() {
                 "$branch" \
                 "$state" \
                 "$detail"
-
         fi
-
     done
 
     rm -rf "$result_dir"
 
     return "$any_failed"
 }
-
-
-# ---------------------------------------------------------------------------
-# Summary
-# ---------------------------------------------------------------------------
 
 print_summary() {
     local ok=0
@@ -669,14 +535,8 @@ print_summary() {
     local skipped=0
     local i
 
-    local state
-    local state_color
-
     printf '\n\n'
-
-    printf '%sSummary%s\n' \
-        "$COLOR_BOLD" \
-        "$COLOR_RESET"
+    printf 'Summary\n'
 
     printf '%-8s %-28s %-18s %s\n' \
         "STATE" \
@@ -692,88 +552,40 @@ print_summary() {
 
     for i in "${!RESULT_NAMES[@]}"; do
 
-        state="${RESULT_STATES[$i]}"
-
-        case "$state" in
-
-            OK)
-                state_color="$COLOR_GREEN"
-                ((ok += 1))
-                ;;
-
-            DIRTY)
-                state_color="$COLOR_YELLOW"
-                ((dirty += 1))
-                ;;
-
-            FAILED)
-                state_color="$COLOR_RED"
-                ((failed += 1))
-                ;;
-
-            SKIP)
-                state_color="$COLOR_CYAN"
-                ((skipped += 1))
-                ;;
-
-            *)
-                state_color=""
-                ;;
-
-        esac
-
-        printf '%s%-8s%s %-28s %-18s %s\n' \
-            "$state_color" \
-            "$state" \
-            "$COLOR_RESET" \
+        printf '%-8s %-28s %-18s %s\n' \
+            "${RESULT_STATES[$i]}" \
             "${RESULT_NAMES[$i]}" \
             "${RESULT_BRANCHES[$i]}" \
             "${RESULT_DETAILS[$i]}"
 
+        case "${RESULT_STATES[$i]}" in
+            OK)
+                ((ok += 1))
+                ;;
+            DIRTY)
+                ((dirty += 1))
+                ;;
+            FAILED)
+                ((failed += 1))
+                ;;
+            SKIP)
+                ((skipped += 1))
+                ;;
+        esac
     done
 
     printf '\n'
-
-    printf '%s%-8s%s: %d\n' \
-        "$COLOR_GREEN" \
-        "OK" \
-        "$COLOR_RESET" \
-        "$ok"
-
-    printf '%s%-8s%s: %d\n' \
-        "$COLOR_YELLOW" \
-        "DIRTY" \
-        "$COLOR_RESET" \
-        "$dirty"
-
-    printf '%s%-8s%s: %d\n' \
-        "$COLOR_RED" \
-        "FAILED" \
-        "$COLOR_RESET" \
-        "$failed"
-
-    printf '%s%-8s%s: %d\n' \
-        "$COLOR_CYAN" \
-        "SKIPPED" \
-        "$COLOR_RESET" \
-        "$skipped"
-
-    printf '%-8s: %d\n' \
-        "TOTAL" \
-        "${#RESULT_NAMES[@]}"
+    printf 'OK      : %d\n' "$ok"
+    printf 'DIRTY   : %d\n' "$dirty"
+    printf 'FAILED  : %d\n' "$failed"
+    printf 'SKIPPED : %d\n' "$skipped"
+    printf 'TOTAL   : %d\n' "${#RESULT_NAMES[@]}"
 
     (( failed == 0 ))
 }
 
-
-# ---------------------------------------------------------------------------
-# Argument parsing
-# ---------------------------------------------------------------------------
-
 while (($#)); do
-
     case "$1" in
-
         -f|--fetch)
             MODE="fetch"
             shift
@@ -795,9 +607,7 @@ while (($#)); do
             ;;
 
         -j|--jobs)
-
-            (($# >= 2)) ||
-                die "--jobs requires a value"
+            (($# >= 2)) || die "--jobs requires a value"
 
             JOBS="$2"
 
@@ -843,15 +653,8 @@ while (($#)); do
             (($# == 0)) ||
                 die "only one repo root may be specified"
             ;;
-
     esac
-
 done
-
-
-# ---------------------------------------------------------------------------
-# Sanity checks
-# ---------------------------------------------------------------------------
 
 command -v git >/dev/null 2>&1 ||
     die "git not found in PATH"
@@ -865,63 +668,31 @@ if (( JOBS > 1 )) && [[ "$MODE" != "fetch" ]]; then
     die "--jobs is supported only with --fetch"
 fi
 
-
-# ---------------------------------------------------------------------------
-# Startup
-# ---------------------------------------------------------------------------
-
-printf '%s %s\n' \
-    "$PROGRAM" \
-    "$VERSION"
-
-printf '%s\n' \
-    "Git repository sweep"
-
-printf '%s\n' \
-    "Root:      $ROOT"
-
-printf '%s\n' \
-    "Mode:      $MODE"
-
-printf '%s\n' \
-    "Recursive: $([[ $RECURSIVE -eq 1 ]] && echo yes || echo no)"
-
-printf '%s\n' \
-    "Dry-run:   $([[ $DRY_RUN -eq 1 ]] && echo yes || echo no)"
+printf '%s %s\n' "$PROGRAM" "$VERSION"
+printf '%s\n' "Git repository sweep"
+printf '%s\n' "Root:      $ROOT"
+printf '%s\n' "Mode:      $MODE"
+printf '%s\n' "Recursive: $([[ $RECURSIVE -eq 1 ]] && echo yes || echo no)"
+printf '%s\n' "Dry-run:   $([[ $DRY_RUN -eq 1 ]] && echo yes || echo no)"
 
 if [[ "$MODE" == "fetch" ]]; then
-    printf '%s\n' \
-        "Jobs:      $JOBS"
+    printf '%s\n' "Jobs:      $JOBS"
 fi
-
-
-# ---------------------------------------------------------------------------
-# Discover repositories
-# ---------------------------------------------------------------------------
 
 discover_repos "$ROOT"
 
 if ((${#REPOS[@]} == 0)); then
-
     printf '\nNo Git repositories found.\n'
-
     exit 0
-
 fi
 
-printf '%s\n' \
-    "Repos:     ${#REPOS[@]}"
+printf '%s\n' "Repos:     ${#REPOS[@]}"
 
 debug "Repositories discovered:"
 
 if (( VERBOSE )); then
     printf '  %s\n' "${REPOS[@]}"
 fi
-
-
-# ---------------------------------------------------------------------------
-# Process repositories
-# ---------------------------------------------------------------------------
 
 overall_rc=0
 
@@ -933,18 +704,11 @@ if [[ "$MODE" == "fetch" ]] && (( JOBS > 1 )); then
 else
 
     for repo in "${REPOS[@]}"; do
-
         process_repo "$repo" ||
             overall_rc=1
-
     done
 
 fi
-
-
-# ---------------------------------------------------------------------------
-# Final summary
-# ---------------------------------------------------------------------------
 
 print_summary ||
     overall_rc=1
