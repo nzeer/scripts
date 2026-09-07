@@ -3,7 +3,7 @@
 set -uo pipefail
 
 PROGRAM="${0##*/}"
-VERSION="1.1.0"
+VERSION="1.0.0"
 
 COMPOSE_ROOT="/opt/docker/compose"
 MODE="pull"
@@ -134,38 +134,14 @@ while (( $# > 0 )); do
     esac
 done
 
-# ---------- compose command detection ----------
-COMPOSE_CMD=()
-
-detect_compose() {
-    # Prefer Docker Compose v2 plugin when available.
-    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-        COMPOSE_CMD=(docker compose)
-        return 0
-    fi
-
-    # Fall back to legacy standalone docker-compose (Compose v1).
-    if command -v docker-compose >/dev/null 2>&1 && docker-compose version >/dev/null 2>&1; then
-        COMPOSE_CMD=(docker-compose)
-        return 0
-    fi
-
-    return 1
-}
-
-compose() {
-    "${COMPOSE_CMD[@]}" "$@"
-}
-
 # ---------- preflight ----------
-if ! command -v docker >/dev/null 2>&1 && ! command -v docker-compose >/dev/null 2>&1; then
-    error "Neither docker nor docker-compose was found in PATH"
+if ! command -v docker >/dev/null 2>&1; then
+    error "docker not found in PATH"
     exit 127
 fi
 
-if ! detect_compose; then
-    error "No usable Docker Compose command found"
-    error "Tried: 'docker compose' and 'docker-compose'"
+if ! docker compose version >/dev/null 2>&1; then
+    error "'docker compose' plugin is not available"
     exit 127
 fi
 
@@ -205,7 +181,6 @@ printf '%s\n' "${BOLD}Docker Compose Stack Sweep${RESET}"
 printf 'Root:   %s\n' "$COMPOSE_ROOT"
 printf 'Mode:   %s\n' "$MODE"
 printf 'Stacks: %d\n' "${#STACK_DIRS[@]}"
-printf 'Compose:%s %s\n' "" "${COMPOSE_CMD[*]}"
 (( DRY_RUN )) && printf 'DryRun: yes\n'
 printf '\n'
 
@@ -247,10 +222,10 @@ for stack_dir in "${STACK_DIRS[@]}"; do
 
     # Validate exactly the same compose project Docker will use from this dir.
     if (( DRY_RUN )); then
-        run_cmd compose config --quiet
+        run_cmd docker compose config --quiet
         validate_rc=0
     else
-        compose config --quiet
+        docker compose config --quiet
         validate_rc=$?
     fi
 
@@ -272,7 +247,7 @@ for stack_dir in "${STACK_DIRS[@]}"; do
             ;;
 
         pull)
-            if run_cmd compose pull; then
+            if run_cmd docker compose pull; then
                 ok "$stack_name: images pulled"
                 ((PASSED+=1))
                 record_result "$stack_name" "OK" "pulled"
@@ -284,7 +259,7 @@ for stack_dir in "${STACK_DIRS[@]}"; do
             ;;
 
         update)
-            if ! run_cmd compose pull; then
+            if ! run_cmd docker compose pull; then
                 error "$stack_name: pull failed; not running compose up"
                 ((FAILED+=1))
                 record_result "$stack_name" "FAILED" "pull"
@@ -295,7 +270,7 @@ for stack_dir in "${STACK_DIRS[@]}"; do
 
             ok "$stack_name: images pulled"
 
-            if run_cmd compose up -d --remove-orphans; then
+            if run_cmd docker compose up -d --remove-orphans; then
                 ok "$stack_name: stack updated"
                 ((PASSED+=1))
                 record_result "$stack_name" "OK" "updated"
