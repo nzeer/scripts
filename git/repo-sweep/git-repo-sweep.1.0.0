@@ -4,7 +4,6 @@ set -u
 set -o pipefail
 
 PROGRAM="${0##*/}"
-VERSION="1.1.0"
 
 ROOT="/repos"
 MODE="pull"
@@ -21,8 +20,6 @@ declare -a RESULT_DETAILS=()
 
 usage() {
     cat <<EOF
-$PROGRAM $VERSION
-
 Usage:
   $PROGRAM [options] [repo-root]
 
@@ -36,7 +33,6 @@ Options:
   -j, --jobs N          Parallel jobs for fetch mode (default: 1)
       --no-recursive    Only inspect immediate children of repo-root
   -v, --verbose         Show additional information
-  -V, --version         Show version
   -h, --help            Show this help
 
 Examples:
@@ -62,10 +58,6 @@ Exit status:
   1   One or more repositories failed
   2   Invalid arguments or repo root
 EOF
-}
-
-show_version() {
-    printf '%s %s\n' "$PROGRAM" "$VERSION"
 }
 
 log() {
@@ -99,30 +91,19 @@ repo_name() {
 
 repo_branch() {
     local repo="$1"
-
-    git -C "$repo" \
-        symbolic-ref \
-        --quiet \
-        --short \
-        HEAD 2>/dev/null || true
+    git -C "$repo" symbolic-ref --quiet --short HEAD 2>/dev/null || true
 }
 
 repo_is_dirty() {
     local repo="$1"
 
-    [[ -n "$(
-        git -C "$repo" \
-            status \
-            --porcelain \
-            --untracked-files=normal 2>/dev/null
-    )" ]]
+    [[ -n "$(git -C "$repo" status --porcelain --untracked-files=normal 2>/dev/null)" ]]
 }
 
 repo_has_upstream() {
     local repo="$1"
 
-    git -C "$repo" \
-        rev-parse \
+    git -C "$repo" rev-parse \
         --abbrev-ref \
         --symbolic-full-name \
         '@{upstream}' >/dev/null 2>&1
@@ -131,8 +112,7 @@ repo_has_upstream() {
 repo_upstream() {
     local repo="$1"
 
-    git -C "$repo" \
-        rev-parse \
+    git -C "$repo" rev-parse \
         --abbrev-ref \
         --symbolic-full-name \
         '@{upstream}' 2>/dev/null || true
@@ -161,7 +141,6 @@ discover_repos() {
             fi
 
             REPOS+=("$repo")
-
         done < <(
             find "$root" \
                 -mindepth 2 \
@@ -171,12 +150,8 @@ discover_repos() {
         )
     else
         local dir
-
         while IFS= read -r -d '' dir; do
-            if git -C "$dir" \
-                rev-parse \
-                --is-inside-work-tree >/dev/null 2>&1
-            then
+            if git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
                 REPOS+=("${dir%/}")
             fi
         done < <(
@@ -199,30 +174,19 @@ discover_repos() {
 
 process_repo() {
     local repo="$1"
-
-    local name
-    local branch
-    local upstream
-    local dirty=0
+    local name branch upstream dirty=0
 
     name="$(repo_name "$repo")"
     branch="$(repo_branch "$repo")"
 
-    printf '\n'
-    printf '================================================================\n'
+    printf '\n================================================================\n'
     printf ' Repo:   %s\n' "$repo"
 
     if [[ -z "$branch" ]]; then
         printf ' Branch: DETACHED\n'
         printf '================================================================\n'
         printf '[SKIP] Detached HEAD\n'
-
-        record_result \
-            "$name" \
-            "DETACHED" \
-            "SKIP" \
-            "detached HEAD"
-
+        record_result "$name" "DETACHED" "SKIP" "detached HEAD"
         return 0
     fi
 
@@ -247,34 +211,15 @@ process_repo() {
 
     case "$MODE" in
         fetch)
-            if run_cmd \
-                git -C "$repo" \
-                fetch \
-                --all \
-                --prune
-            then
+            if run_cmd git -C "$repo" fetch --all --prune; then
                 if (( dirty )); then
-                    record_result \
-                        "$name" \
-                        "$branch" \
-                        "DIRTY" \
-                        "fetched; local changes present"
+                    record_result "$name" "$branch" "DIRTY" "fetched; local changes present"
                 else
-                    record_result \
-                        "$name" \
-                        "$branch" \
-                        "OK" \
-                        "fetched"
+                    record_result "$name" "$branch" "OK" "fetched"
                 fi
-
                 return 0
             else
-                record_result \
-                    "$name" \
-                    "$branch" \
-                    "FAILED" \
-                    "fetch failed"
-
+                record_result "$name" "$branch" "FAILED" "fetch failed"
                 return 1
             fi
             ;;
@@ -282,43 +227,19 @@ process_repo() {
         pull)
             if [[ -z "$upstream" ]]; then
                 printf '[SKIP] No upstream configured for %s\n' "$branch"
-
-                record_result \
-                    "$name" \
-                    "$branch" \
-                    "SKIP" \
-                    "no upstream"
-
+                record_result "$name" "$branch" "SKIP" "no upstream"
                 return 0
             fi
 
-            if run_cmd \
-                git -C "$repo" \
-                pull \
-                --ff-only
-            then
+            if run_cmd git -C "$repo" pull --ff-only; then
                 if (( dirty )); then
-                    record_result \
-                        "$name" \
-                        "$branch" \
-                        "DIRTY" \
-                        "updated/current; local changes present"
+                    record_result "$name" "$branch" "DIRTY" "updated/current; local changes present"
                 else
-                    record_result \
-                        "$name" \
-                        "$branch" \
-                        "OK" \
-                        "updated/current"
+                    record_result "$name" "$branch" "OK" "updated/current"
                 fi
-
                 return 0
             else
-                record_result \
-                    "$name" \
-                    "$branch" \
-                    "FAILED" \
-                    "pull --ff-only failed"
-
+                record_result "$name" "$branch" "FAILED" "pull --ff-only failed"
                 return 1
             fi
             ;;
@@ -326,47 +247,21 @@ process_repo() {
         rebase)
             if [[ -z "$upstream" ]]; then
                 printf '[SKIP] No upstream configured for %s\n' "$branch"
-
-                record_result \
-                    "$name" \
-                    "$branch" \
-                    "SKIP" \
-                    "no upstream"
-
+                record_result "$name" "$branch" "SKIP" "no upstream"
                 return 0
             fi
 
             if (( dirty )); then
                 printf '[SKIP] Dirty repository; refusing automatic rebase\n'
-
-                record_result \
-                    "$name" \
-                    "$branch" \
-                    "DIRTY" \
-                    "rebase skipped; local changes present"
-
+                record_result "$name" "$branch" "DIRTY" "rebase skipped; local changes present"
                 return 0
             fi
 
-            if run_cmd \
-                git -C "$repo" \
-                pull \
-                --rebase
-            then
-                record_result \
-                    "$name" \
-                    "$branch" \
-                    "OK" \
-                    "rebased/current"
-
+            if run_cmd git -C "$repo" pull --rebase; then
+                record_result "$name" "$branch" "OK" "rebased/current"
                 return 0
             else
-                record_result \
-                    "$name" \
-                    "$branch" \
-                    "FAILED" \
-                    "pull --rebase failed"
-
+                record_result "$name" "$branch" "FAILED" "pull --rebase failed"
                 return 1
             fi
             ;;
@@ -378,12 +273,7 @@ process_fetch_parallel_worker() {
     local result_dir="$2"
     local idx="$3"
 
-    local name
-    local branch
-    local dirty=0
-    local state
-    local detail
-    local rc=0
+    local name branch dirty=0 state detail rc=0
 
     name="$(repo_name "$repo")"
     branch="$(repo_branch "$repo")"
@@ -395,40 +285,19 @@ process_fetch_parallel_worker() {
     fi
 
     {
-        printf '\n'
-        printf '================================================================\n'
+        printf '\n================================================================\n'
         printf ' Repo:   %s\n' "$repo"
         printf ' Branch: %s\n' "$branch"
-
-        if (( dirty )); then
-            printf ' Status: dirty\n'
-        else
-            printf ' Status: clean\n'
-        fi
-
+        printf ' Status: %s\n' "$([[ $dirty -eq 1 ]] && echo dirty || echo clean)"
         printf '================================================================\n'
 
         if (( DRY_RUN )); then
             printf '[DRY-RUN] git -C %q fetch --all --prune\n' "$repo"
-
-            if (( dirty )); then
-                state="DIRTY"
-            else
-                state="OK"
-            fi
-
+            state="$([[ $dirty -eq 1 ]] && echo DIRTY || echo OK)"
             detail="would fetch"
-
         elif git -C "$repo" fetch --all --prune; then
-
-            if (( dirty )); then
-                state="DIRTY"
-            else
-                state="OK"
-            fi
-
+            state="$([[ $dirty -eq 1 ]] && echo DIRTY || echo OK)"
             detail="fetched"
-
         else
             state="FAILED"
             detail="fetch failed"
@@ -436,12 +305,7 @@ process_fetch_parallel_worker() {
         fi
 
         printf '%s\t%s\t%s\t%s\n' \
-            "$name" \
-            "$branch" \
-            "$state" \
-            "$detail" \
-            > "$result_dir/$idx.result"
-
+            "$name" "$branch" "$state" "$detail" > "$result_dir/$idx.result"
     } > "$result_dir/$idx.output" 2>&1
 
     return "$rc"
@@ -450,25 +314,20 @@ process_fetch_parallel_worker() {
 process_fetch_parallel() {
     local result_dir
     result_dir="$(mktemp -d)"
+    trap 'rm -rf "$result_dir"' RETURN
 
     local -a pids=()
-
+    local -a indexes=()
     local running=0
     local idx=0
-    local repo
-    local pid
-    local any_failed=0
+    local repo pid any_failed=0
 
     for repo in "${REPOS[@]}"; do
-        process_fetch_parallel_worker \
-            "$repo" \
-            "$result_dir" \
-            "$idx" &
-
+        process_fetch_parallel_worker "$repo" "$result_dir" "$idx" &
         pid=$!
 
         pids+=("$pid")
-
+        indexes+=("$idx")
         ((running += 1))
         ((idx += 1))
 
@@ -482,12 +341,12 @@ process_fetch_parallel() {
             done
 
             pids=()
+            indexes=()
             running=0
         fi
     done
 
     local i
-
     for i in "${!pids[@]}"; do
         if ! wait "${pids[$i]}"; then
             any_failed=1
@@ -495,63 +354,28 @@ process_fetch_parallel() {
     done
 
     local total="${#REPOS[@]}"
-
     for ((i=0; i<total; i++)); do
-
-        if [[ -f "$result_dir/$i.output" ]]; then
-            cat "$result_dir/$i.output"
-        fi
+        [[ -f "$result_dir/$i.output" ]] && cat "$result_dir/$i.output"
 
         if [[ -f "$result_dir/$i.result" ]]; then
-            local name
-            local branch
-            local state
-            local detail
-
-            IFS=$'\t' read -r \
-                name \
-                branch \
-                state \
-                detail \
-                < "$result_dir/$i.result"
-
-            record_result \
-                "$name" \
-                "$branch" \
-                "$state" \
-                "$detail"
+            local name branch state detail
+            IFS=$'\t' read -r name branch state detail < "$result_dir/$i.result"
+            record_result "$name" "$branch" "$state" "$detail"
         fi
     done
-
-    rm -rf "$result_dir"
 
     return "$any_failed"
 }
 
 print_summary() {
-    local ok=0
-    local dirty=0
-    local failed=0
-    local skipped=0
+    local ok=0 dirty=0 failed=0 skipped=0
     local i
 
-    printf '\n\n'
-    printf 'Summary\n'
-
-    printf '%-8s %-28s %-18s %s\n' \
-        "STATE" \
-        "REPOSITORY" \
-        "BRANCH" \
-        "DETAIL"
-
-    printf '%-8s %-28s %-18s %s\n' \
-        "--------" \
-        "----------------------------" \
-        "------------------" \
-        "------------------------------"
+    printf '\n\nSummary\n'
+    printf '%-8s %-28s %-18s %s\n' "STATE" "REPOSITORY" "BRANCH" "DETAIL"
+    printf '%-8s %-28s %-18s %s\n' "--------" "----------------------------" "------------------" "------------------------------"
 
     for i in "${!RESULT_NAMES[@]}"; do
-
         printf '%-8s %-28s %-18s %s\n' \
             "${RESULT_STATES[$i]}" \
             "${RESULT_NAMES[$i]}" \
@@ -559,18 +383,10 @@ print_summary() {
             "${RESULT_DETAILS[$i]}"
 
         case "${RESULT_STATES[$i]}" in
-            OK)
-                ((ok += 1))
-                ;;
-            DIRTY)
-                ((dirty += 1))
-                ;;
-            FAILED)
-                ((failed += 1))
-                ;;
-            SKIP)
-                ((skipped += 1))
-                ;;
+            OK)     ((ok += 1)) ;;
+            DIRTY)  ((dirty += 1)) ;;
+            FAILED) ((failed += 1)) ;;
+            SKIP)   ((skipped += 1)) ;;
         esac
     done
 
@@ -590,77 +406,53 @@ while (($#)); do
             MODE="fetch"
             shift
             ;;
-
         -p|--pull)
             MODE="pull"
             shift
             ;;
-
         -r|--rebase)
             MODE="rebase"
             shift
             ;;
-
         -n|--dry-run)
             DRY_RUN=1
             shift
             ;;
-
         -j|--jobs)
             (($# >= 2)) || die "--jobs requires a value"
-
             JOBS="$2"
-
-            [[ "$JOBS" =~ ^[1-9][0-9]*$ ]] ||
-                die "--jobs must be a positive integer"
-
+            [[ "$JOBS" =~ ^[1-9][0-9]*$ ]] || die "--jobs must be a positive integer"
             shift 2
             ;;
-
         --no-recursive)
             RECURSIVE=0
             shift
             ;;
-
         -v|--verbose)
             VERBOSE=1
             shift
             ;;
-
-        -V|--version)
-            show_version
-            exit 0
-            ;;
-
         -h|--help)
             usage
             exit 0
             ;;
-
         --)
             shift
             break
             ;;
-
         -*)
             die "unknown option: $1"
             ;;
-
         *)
             ROOT="$1"
             shift
-
-            (($# == 0)) ||
-                die "only one repo root may be specified"
+            (($# == 0)) || die "only one repo root may be specified"
             ;;
     esac
 done
 
-command -v git >/dev/null 2>&1 ||
-    die "git not found in PATH"
-
-[[ -d "$ROOT" ]] ||
-    die "repo root does not exist: $ROOT"
+command -v git >/dev/null 2>&1 || die "git not found in PATH"
+[[ -d "$ROOT" ]] || die "repo root does not exist: $ROOT"
 
 ROOT="$(cd "$ROOT" && pwd -P)"
 
@@ -668,28 +460,27 @@ if (( JOBS > 1 )) && [[ "$MODE" != "fetch" ]]; then
     die "--jobs is supported only with --fetch"
 fi
 
-printf '%s %s\n' "$PROGRAM" "$VERSION"
-printf '%s\n' "Git repository sweep"
-printf '%s\n' "Root:      $ROOT"
-printf '%s\n' "Mode:      $MODE"
-printf '%s\n' "Recursive: $([[ $RECURSIVE -eq 1 ]] && echo yes || echo no)"
-printf '%s\n' "Dry-run:   $([[ $DRY_RUN -eq 1 ]] && echo yes || echo no)"
+log "Git repository sweep"
+log "Root:      $ROOT"
+log "Mode:      $MODE"
+log "Recursive: $([[ $RECURSIVE -eq 1 ]] && echo yes || echo no)"
+log "Dry-run:   $([[ $DRY_RUN -eq 1 ]] && echo yes || echo no)"
 
 if [[ "$MODE" == "fetch" ]]; then
-    printf '%s\n' "Jobs:      $JOBS"
+    log "Jobs:      $JOBS"
 fi
 
 discover_repos "$ROOT"
 
 if ((${#REPOS[@]} == 0)); then
-    printf '\nNo Git repositories found.\n'
+    log
+    log "No Git repositories found."
     exit 0
 fi
 
-printf '%s\n' "Repos:     ${#REPOS[@]}"
+log "Repos:     ${#REPOS[@]}"
 
 debug "Repositories discovered:"
-
 if (( VERBOSE )); then
     printf '  %s\n' "${REPOS[@]}"
 fi
@@ -697,20 +488,14 @@ fi
 overall_rc=0
 
 if [[ "$MODE" == "fetch" ]] && (( JOBS > 1 )); then
-
-    process_fetch_parallel ||
-        overall_rc=1
-
+    process_fetch_parallel || overall_rc=1
 else
-
     for repo in "${REPOS[@]}"; do
-        process_repo "$repo" ||
-            overall_rc=1
+        process_repo "$repo" || overall_rc=1
     done
-
 fi
 
-print_summary ||
-    overall_rc=1
+print_summary || overall_rc=1
 
 exit "$overall_rc"
+
